@@ -9,6 +9,7 @@ import { isoLayout, renderIsoSvg } from "../lib/render-iso.mjs";
 import { loadTheme } from "../lib/themes.mjs";
 import { markdown } from "../lib/markdown.mjs";
 import vm from "node:vm";
+import { fileURLToPath } from "node:url";
 
 const load = () => normalise(JSON.parse(readFileSync(new URL("../examples/bowerbird.bower.json", import.meta.url), "utf8")));
 const dark = loadTheme("dark");
@@ -44,8 +45,8 @@ test("fonts are embedded only on request", async () => {
   const { build } = await import("../lib/export.mjs");
   const { mkdirSync, mkdtempSync, readFileSync: read } = await import("node:fs");
   mkdirSync(new URL("../deprecated/", import.meta.url), { recursive: true });
-  const out = mkdtempSync(new URL("../deprecated/test-out-", import.meta.url).pathname);
-  const file = new URL("../examples/pi-packages.bower.json", import.meta.url).pathname;
+  const out = mkdtempSync(fileURLToPath(new URL("../deprecated/test-out-", import.meta.url)));
+  const file = fileURLToPath(new URL("../examples/pi-packages.bower.json", import.meta.url));
   await build(file, { outDir: out, formats: ["svg"] });
   assert.ok(!read(`${out}/pi-packages.dark.svg`, "utf8").includes("@font-face"));
 });
