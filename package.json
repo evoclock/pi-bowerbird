@@ -37,6 +37,7 @@
     "themes/",
     "templates/",
     "examples/*.bower.json",
+    "CHANGELOG.md",
     "README.md",
     "LICENSE"
   ],
