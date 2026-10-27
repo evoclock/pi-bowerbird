@@ -102,10 +102,17 @@ test("viewer controls keep working after panning (flat and iso)", { skip: !exist
       await click(".bb-node[tabindex]");
       await click("#drawer-close");
       assert.equal((await state()).drawer, false, `${page}: light X dismisses details`);
-      const before = await evalJs(`getComputedStyle(document.querySelector(".cat-sage .bb-mark, .bb-mark.cat-sage")).fill`);
-      await click("#category-fill-parity");
-      const after = await evalJs(`getComputedStyle(document.querySelector(".cat-sage .bb-mark, .bb-mark.cat-sage")).fill`);
-      assert.notEqual(after, before, `${page}: light parity toggle changes the fill`);
+      if (page.includes("/flat/")) {
+        // Why: the real toolbar toggles only the flat light node plane, not the category indicator or dark plane.
+        const fill = () => evalJs(`getComputedStyle(document.querySelector(".bb-node.cat-sage .bb-node-box")).fill`);
+        const dot = () => evalJs(`getComputedStyle(document.querySelector(".bb-node.cat-sage .bb-mark")).fill`);
+        const dotsFill = await fill(), dotsMark = await dot();
+        await click("#light-flat-fill");
+        assert.notEqual(await fill(), dotsFill, `${page}: filled changes light node plane`);
+        assert.equal(await dot(), dotsMark, `${page}: indicator is unchanged`);
+        await click("#light-flat-fill");
+        assert.equal(await fill(), dotsFill, `${page}: dots-only restores the neutral plane`);
+      } else assert.equal(await evalJs(`document.getElementById("light-flat-fill") === null`), true);
       assert.equal(await evalJs(`document.documentElement.dataset.theme`), "light");
     }
   });

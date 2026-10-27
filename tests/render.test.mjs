@@ -48,7 +48,8 @@ test("fonts are embedded only on request", async () => {
   const out = mkdtempSync(fileURLToPath(new URL("../deprecated/test-out-", import.meta.url)));
   const file = fileURLToPath(new URL("../examples/pi-packages.bower.json", import.meta.url));
   await build(file, { outDir: out, formats: ["svg"] });
-  assert.ok(!read(`${out}/pi-packages.dark.svg`, "utf8").includes("@font-face"));
+  assert.ok(!read(`${out}/pi-packages.flat.dark.svg`, "utf8").includes("@font-face"));
+  assert.ok(!read(`${out}/pi-packages.iso.dark.svg`, "utf8").includes("@font-face"));
 });
 
 test("planned nodes get no flow animation", () => {
@@ -81,7 +82,7 @@ test("HTML client script is valid JavaScript", () => {
   assert.equal(scripts.length, 1);
   assert.doesNotThrow(() => new vm.Script(scripts[0]));
   const data = html.match(/<script type="application\/json" id="bb-standalone-css">([\s\S]*?)<\/script>/)[1];
-  assert.deepEqual(Object.keys(JSON.parse(data)).sort(), ["dark", "light", "lightParity"]);
+  assert.deepEqual(Object.keys(JSON.parse(data)).sort(), ["dark", "light", "lightFilled"]);
 });
 
 test("HTML ships navigation: zoom, fit, fullscreen, minimap", () => {
@@ -92,38 +93,63 @@ test("HTML ships navigation: zoom, fit, fullscreen, minimap", () => {
   }
 });
 
-// Why: the public CLI and meta must produce the same exact category fill as dark without changing dark or light surfaces.
-test("category fill parity applies to light SVG, iso SVG, and HTML without changing dark", async () => {
-  const { build } = await import("../lib/export.mjs");
-  const { mkdtempSync, mkdirSync } = await import("node:fs");
-  const { spawnSync } = await import("node:child_process");
+// Why: flat light cards must be neutral in dots mode, and filled cards must use the iso block palette without changing dark or iso.
+test("light flat dots-only and filled are distinct, dark and iso stay fixed", () => {
   const m = load();
-  const darkSvg = renderSvg(m, layout(m), { theme: dark });
-  const lightSvg = renderSvg(m, layout(m), { theme: light });
-  const selector = ".cat-sage .bb-mark,.bb-mark.cat-sage";
-  const rule = (svg, sel) => svg.split(`${sel}{`)[1]?.split("}")[0];
   const raw = JSON.parse(readFileSync(new URL("../examples/bowerbird.bower.json", import.meta.url), "utf8"));
-  const parity = normalise({ ...raw, meta: { ...raw.meta, categoryFillParity: "dark" } });
-  const paritySvg = renderSvg(parity, layout(parity), { theme: light, categoryTheme: dark });
-  assert.notEqual(rule(lightSvg, selector), rule(darkSvg, selector));
-  for (const sel of [selector, ".cat-sage .bb-node-box", ".bb-zone.cat-sage"]) assert.equal(rule(paritySvg, sel), rule(darkSvg, sel), sel);
-  assert.equal(rule(paritySvg, ".bb-canvas"), rule(lightSvg, ".bb-canvas"));
-  assert.equal(rule(paritySvg, ".cat-sage .bb-kicker,.cat-sage .bb-zone-kicker"), rule(lightSvg, ".cat-sage .bb-kicker,.cat-sage .bb-zone-kicker"));
-  assert.equal(renderSvg(parity, layout(parity), { theme: dark }), darkSvg);
-  const iso = isoLayout(parity, layout(parity));
-  assert.equal(rule(renderIsoSvg(parity, iso, { theme: light, categoryTheme: dark }), ".cat-sage .iso-roof"), rule(renderIsoSvg(parity, iso, { theme: dark }), ".cat-sage .iso-roof"));
-  const html = renderHtml(parity, layout(parity), { light, dark });
-  assert.match(html, /id="category-fill-parity"/);
-  assert.match(html, /data-category-fill-parity="dark"/);
-  mkdirSync(fileURLToPath(new URL("../deprecated/", import.meta.url)), { recursive: true });
-  const out = mkdtempSync(fileURLToPath(new URL("../deprecated/parity-out-", import.meta.url)));
+  const filled = normalise({ ...raw, meta: { ...raw.meta, lightFlatFill: "filled" } });
+  const rule = (svg, sel) => svg.split(`${sel}{`).at(-1) === svg ? undefined : svg.split(`${sel}{`).at(-1).split("}")[0];
+  const dotsSvg = renderSvg(m, layout(m), { theme: light });
+  const filledSvg = renderSvg(filled, layout(filled), { theme: light });
+  const darkSvg = renderSvg(m, layout(m), { theme: dark });
+  const card = ".cat-sage .bb-node-box";
+  const dot = ".cat-sage .bb-mark,.bb-mark.cat-sage";
+  assert.equal(rule(dotsSvg, card), undefined, "dots-only cards inherit the neutral light panel");
+  const neutral = dotsSvg.split("\n.bb-node-box{").at(-1)?.split("}")[0];
+  assert.match(neutral, /fill:/);
+  assert.match(rule(dotsSvg, dot), /fill:#[0-9a-f]{6}/);
+  assert.notEqual(rule(filledSvg, card), neutral);
+  const isoLight = renderIsoSvg(m, isoLayout(m, layout(m)), { theme: light });
+  assert.equal(rule(filledSvg, card).split(";")[0], rule(isoLight, ".cat-sage .iso-roof").split(";")[0]);
+  assert.equal(rule(dotsSvg, dot), rule(filledSvg, dot), "indicator dots do not change");
+  assert.equal(rule(dotsSvg, ".bb-canvas"), rule(filledSvg, ".bb-canvas"));
+  assert.equal(renderSvg(filled, layout(filled), { theme: dark }), darkSvg);
+  const iso = isoLayout(m, layout(m));
+  assert.equal(renderIsoSvg(filled, iso, { theme: light }), renderIsoSvg(m, iso, { theme: light }));
+  assert.equal(renderIsoSvg(filled, iso, { theme: dark }), renderIsoSvg(m, iso, { theme: dark }));
+  const html = renderHtml(filled, layout(filled), { light, dark });
+  assert.match(html, /id="light-flat-fill"[^>]*>Filled nodes/);
+  assert.match(html, /data-light-flat-fill="filled"/);
+  assert.throws(() => normalise({ ...raw, meta: { ...raw.meta, lightFlatFill: "neon" } }), /lightFlatFill/);
+  assert.throws(() => normalise({ ...raw, meta: { ...raw.meta, categoryFillParity: "dark" } }), /no longer supported/);
+});
+
+// Why: every entry point must ship both views by default, while an explicit --view stays a single-view opt-out.
+test("build and CLI render default to dual output and honor explicit view", async () => {
+  const { build } = await import("../lib/export.mjs");
+  const { mkdtempSync, mkdirSync, existsSync } = await import("node:fs");
+  const { spawnSync } = await import("node:child_process");
+  const { embedSnippets } = await import("../lib/snippets.mjs");
+  const scratch = fileURLToPath(new URL("../deprecated/", import.meta.url));
+  mkdirSync(scratch, { recursive: true });
+  const out = mkdtempSync(fileURLToPath(new URL("../deprecated/dual-out-", import.meta.url)));
   const file = fileURLToPath(new URL("../examples/bowerbird.bower.json", import.meta.url));
-  await build(file, { outDir: out, formats: ["svg"], categoryFillParity: "dark" });
-  assert.equal(rule(readFileSync(`${out}/bowerbird.light.svg`, "utf8"), selector), rule(darkSvg, selector));
-  const cli = spawnSync(process.execPath, [fileURLToPath(new URL("../bin/bowerbird.mjs", import.meta.url)), "render", file, "--out", out, "--formats", "svg", "--category-fill-parity", "dark"], { encoding: "utf8" });
+  const result = await build(file, { outDir: out, formats: ["html", "svg"] });
+  for (const view of ["flat", "iso"]) for (const ext of ["html", "dark.svg", "light.svg"]) assert.ok(existsSync(`${out}/bowerbird.${view}.${ext}`), `${view}.${ext}`);
+  assert.equal(result.written.length, 8);
+  assert.match(embedSnippets(file, { outDir: out, repoRoot: out }), /bowerbird.flat.dark.svg/);
+  assert.match(embedSnippets(file, { outDir: out, repoRoot: out }), /bowerbird.iso.html/);
+  const cli = spawnSync(process.execPath, [fileURLToPath(new URL("../bin/bowerbird.mjs", import.meta.url)), "render", file, "--out", out, "--formats", "svg", "--light-flat-fill", "filled"], { encoding: "utf8" });
   assert.equal(cli.status, 0, cli.stderr);
-  assert.equal(rule(readFileSync(`${out}/bowerbird.light.svg`, "utf8"), selector), rule(darkSvg, selector));
-  assert.throws(() => normalise({ ...raw, meta: { ...raw.meta, categoryFillParity: "solid" } }), /categoryFillParity/);
+  for (const view of ["flat", "iso"]) assert.ok(existsSync(`${out}/bowerbird.${view}.light.svg`));
+  const single = await build(file, { outDir: mkdtempSync(fileURLToPath(new URL("../deprecated/single-out-", import.meta.url))), formats: ["svg"], view: "iso" });
+  assert.equal(single.written.length, 3);
+  assert.ok(single.written.every((p) => !p.includes(".flat.")));
+  const cliSingleOut = mkdtempSync(fileURLToPath(new URL("../deprecated/cli-single-out-", import.meta.url)));
+  const cliSingle = spawnSync(process.execPath, [fileURLToPath(new URL("../bin/bowerbird.mjs", import.meta.url)), "render", file, "--out", cliSingleOut, "--formats", "svg", "--view", "flat"], { encoding: "utf8" });
+  assert.equal(cliSingle.status, 0, cliSingle.stderr);
+  assert.ok(existsSync(`${cliSingleOut}/bowerbird.light.svg`));
+  assert.ok(!existsSync(`${cliSingleOut}/bowerbird.iso.light.svg`));
 });
 
 test("markdown escapes HTML and drops javascript: links", () => {

@@ -37,7 +37,7 @@ Same diagram in isometric view:
 | Flat | `--view flat` | `--direction TD` |
 | Isometric | `--view iso` | `--view iso --direction TD` |
 
-Every mode comes in a dark and a light theme. See [examples/gallery/index.html](examples/gallery/index.html).
+With no `--view` flag, every render writes both `<name>.flat.*` and `<name>.iso.*` files, each in dark and light. Use `--view flat` or `--view iso` (or `meta.view`) to opt out and write only `<name>.*`. See [examples/gallery/index.html](examples/gallery/index.html).
 
 In the isometric view, status reads as construction: built is a solid block, partial has a hatched roof, planned is a wireframe.
 
@@ -46,7 +46,7 @@ In the isometric view, status reads as construction: built is a solid block, par
 - **restrained** (default). Matte planes, fine lines, generous space, and soft pastel colour.
 - **expressive**. Glows, colour washes, shadows, and gradients.
 
-Set `meta.style` in the diagram, or pass `--style expressive` to `render`. Both themes share the chosen style. In restrained style, light mode uses chalky category fills by default. Set `meta.categoryFillParity` to `"dark"` or pass `--category-fill-parity dark` to use the dark recipe's category fills while keeping light surfaces and text. The HTML toolbar can switch fills without rerendering; `--category-fill-parity mode` restores the default.
+Set `meta.style` in the diagram, or pass `--style expressive` to `render`. Both themes share the chosen style. In restrained **flat light** diagrams, only the small indicator dots show category colours by default. Set `meta.lightFlatFill` to `"filled"` or pass `--light-flat-fill filled` to fill node cards with category colours; the flat HTML toolbar can switch between dots-only and filled. `--light-flat-fill dots` restores the default. Dark and isometric styling are unchanged. The former `categoryFillParity` option is no longer supported.
 
 ## Install
 
@@ -80,7 +80,7 @@ In pi, ask for a diagram. The `bowerbird` skill teaches the format and the `bowe
 
 ```sh
 bowerbird init docs/diagrams/system.bower.json
-bowerbird render docs/diagrams/system.bower.json            # html, svg, png, webp
+bowerbird render docs/diagrams/system.bower.json            # both flat and iso; html, svg, png, webp
 bowerbird render docs/diagrams/system.bower.json --view iso --direction TD
 bowerbird snippets docs/diagrams/system.bower.json          # README and MARP embeds
 ```
@@ -106,12 +106,12 @@ bowerbird diff docs/diagrams/system.bower.json    # structural changes since HEA
 
 ```html
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/system.dark.svg">
-  <img alt="System" src="docs/diagrams/system.light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/system.flat.dark.svg">
+  <img alt="System" src="docs/diagrams/system.flat.light.svg">
 </picture>
 ```
 
-For MARP, use `![bg contain](docs/diagrams/system.light.svg)`, or the WebP for PDF and PPTX export.
+For MARP, use `![bg contain](docs/diagrams/system.flat.light.svg)`, or the WebP for PDF and PPTX export. Use `system.iso.light.svg` for the isometric view.
 
 ## CI
 

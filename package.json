@@ -1,6 +1,6 @@
 {
   "name": "@evoclock/pi-bowerbird",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Reproducible architecture diagrams, statecharts, and concept maps for pi: interactive HTML, animated theme-aware SVG for READMEs and MARP, PNG/WebP export, built-vs-planned tracking, and TLA+ from statecharts.",
   "type": "module",
   "license": "MIT",
@@ -41,14 +41,20 @@
     "LICENSE"
   ],
   "pi": {
-    "extensions": ["./extensions/bowerbird.ts"],
-    "skills": ["./skills/bowerbird"]
+    "extensions": [
+      "./extensions/bowerbird.ts"
+    ],
+    "skills": [
+      "./skills/bowerbird"
+    ]
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
   },
   "peerDependenciesMeta": {
-    "@earendil-works/pi-coding-agent": { "optional": true }
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    }
   },
   "optionalDependencies": {}
 }
