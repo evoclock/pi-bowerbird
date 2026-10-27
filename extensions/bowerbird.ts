@@ -23,7 +23,7 @@ export default function bowerbird(pi: any) {
       label: "bowerbird",
       description:
         "Render and check *.bower.json diagrams (architecture maps, statecharts, concept maps). " +
-        "Actions: render (HTML + SVG + PNG/WebP; view flat|iso), validate (layout warnings), " +
+        "Actions: render (HTML + SVG + PNG/WebP; both flat and iso by default; view flat|iso limits output), validate (layout warnings), " +
         "check (statechart: unreachable, dead-end, ambiguous), journeys (Given/When/Then paths), " +
         "tla (TLA+ spec + TLC cfg), diff (changes since a git ref), sync (refresh node status from git), " +
         "snippets (README/MARP embeds), init (starter file). Load the bowerbird skill before authoring a diagram.",
@@ -37,7 +37,7 @@ export default function bowerbird(pi: any) {
           view: { type: "string", enum: ["flat", "iso"] },
           direction: { type: "string", enum: ["LR", "TD"], description: "Layout direction (overrides meta.direction)" },
           style: { type: "string", enum: ["restrained", "expressive"], description: "Design language: restrained (minimal, default) or expressive (expressive)" },
-          categoryFillParity: { type: "string", enum: ["mode", "dark"], description: "Light-mode category fills: default chalky or dark-mode parity" },
+          lightFlatFill: { type: "string", enum: ["dots", "filled"], description: "Flat light nodes: category indicator dots only (default), or filled category planes" },
           formats: { type: "string", description: "Comma list of html,svg,png,webp (render)" },
           against: { type: "string", description: "Git ref for diff (default HEAD)" },
           check: { type: "boolean", description: "sync: report without writing; exits non-zero on changes" },
@@ -51,7 +51,7 @@ export default function bowerbird(pi: any) {
         if (p.view) args.push("--view", p.view);
         if (p.direction) args.push("--direction", p.direction);
         if (p.style) args.push("--style", p.style);
-        if (p.categoryFillParity) args.push("--category-fill-parity", p.categoryFillParity);
+        if (p.lightFlatFill) args.push("--light-flat-fill", p.lightFlatFill);
         if (p.formats) args.push("--formats", p.formats);
         if (p.against) args.push("--against", p.against);
         if (p.check) args.push("--check");
