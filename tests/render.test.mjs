@@ -81,7 +81,7 @@ test("HTML client script is valid JavaScript", () => {
   assert.equal(scripts.length, 1);
   assert.doesNotThrow(() => new vm.Script(scripts[0]));
   const data = html.match(/<script type="application\/json" id="bb-standalone-css">([\s\S]*?)<\/script>/)[1];
-  assert.deepEqual(Object.keys(JSON.parse(data)).sort(), ["dark", "light"]);
+  assert.deepEqual(Object.keys(JSON.parse(data)).sort(), ["dark", "light", "lightParity"]);
 });
 
 test("HTML ships navigation: zoom, fit, fullscreen, minimap", () => {
@@ -90,6 +90,40 @@ test("HTML ships navigation: zoom, fit, fullscreen, minimap", () => {
   for (const id of ["stage", "viewport", "zoom-in", "zoom-out", "zoom-level", "zoom-fit", "fullscreen", "minimap", "minimap-frame"]) {
     assert.ok(html.includes(`id="${id}"`), `missing #${id}`);
   }
+});
+
+// Why: the public CLI and meta must produce the same exact category fill as dark without changing dark or light surfaces.
+test("category fill parity applies to light SVG, iso SVG, and HTML without changing dark", async () => {
+  const { build } = await import("../lib/export.mjs");
+  const { mkdtempSync, mkdirSync } = await import("node:fs");
+  const { spawnSync } = await import("node:child_process");
+  const m = load();
+  const darkSvg = renderSvg(m, layout(m), { theme: dark });
+  const lightSvg = renderSvg(m, layout(m), { theme: light });
+  const selector = ".cat-sage .bb-mark,.bb-mark.cat-sage";
+  const rule = (svg, sel) => svg.split(`${sel}{`)[1]?.split("}")[0];
+  const raw = JSON.parse(readFileSync(new URL("../examples/bowerbird.bower.json", import.meta.url), "utf8"));
+  const parity = normalise({ ...raw, meta: { ...raw.meta, categoryFillParity: "dark" } });
+  const paritySvg = renderSvg(parity, layout(parity), { theme: light, categoryTheme: dark });
+  assert.notEqual(rule(lightSvg, selector), rule(darkSvg, selector));
+  for (const sel of [selector, ".cat-sage .bb-node-box", ".bb-zone.cat-sage"]) assert.equal(rule(paritySvg, sel), rule(darkSvg, sel), sel);
+  assert.equal(rule(paritySvg, ".bb-canvas"), rule(lightSvg, ".bb-canvas"));
+  assert.equal(rule(paritySvg, ".cat-sage .bb-kicker,.cat-sage .bb-zone-kicker"), rule(lightSvg, ".cat-sage .bb-kicker,.cat-sage .bb-zone-kicker"));
+  assert.equal(renderSvg(parity, layout(parity), { theme: dark }), darkSvg);
+  const iso = isoLayout(parity, layout(parity));
+  assert.equal(rule(renderIsoSvg(parity, iso, { theme: light, categoryTheme: dark }), ".cat-sage .iso-roof"), rule(renderIsoSvg(parity, iso, { theme: dark }), ".cat-sage .iso-roof"));
+  const html = renderHtml(parity, layout(parity), { light, dark });
+  assert.match(html, /id="category-fill-parity"/);
+  assert.match(html, /data-category-fill-parity="dark"/);
+  mkdirSync(fileURLToPath(new URL("../deprecated/", import.meta.url)), { recursive: true });
+  const out = mkdtempSync(fileURLToPath(new URL("../deprecated/parity-out-", import.meta.url)));
+  const file = fileURLToPath(new URL("../examples/bowerbird.bower.json", import.meta.url));
+  await build(file, { outDir: out, formats: ["svg"], categoryFillParity: "dark" });
+  assert.equal(rule(readFileSync(`${out}/bowerbird.light.svg`, "utf8"), selector), rule(darkSvg, selector));
+  const cli = spawnSync(process.execPath, [fileURLToPath(new URL("../bin/bowerbird.mjs", import.meta.url)), "render", file, "--out", out, "--formats", "svg", "--category-fill-parity", "dark"], { encoding: "utf8" });
+  assert.equal(cli.status, 0, cli.stderr);
+  assert.equal(rule(readFileSync(`${out}/bowerbird.light.svg`, "utf8"), selector), rule(darkSvg, selector));
+  assert.throws(() => normalise({ ...raw, meta: { ...raw.meta, categoryFillParity: "solid" } }), /categoryFillParity/);
 });
 
 test("markdown escapes HTML and drops javascript: links", () => {

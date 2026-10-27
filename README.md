@@ -46,7 +46,7 @@ In the isometric view, status reads as construction: built is a solid block, par
 - **restrained** (default). Matte planes, fine lines, generous space, and soft pastel colour.
 - **expressive**. Glows, colour washes, shadows, and gradients.
 
-Set `meta.style` in the diagram, or pass `--style expressive` to `render`. Both themes share the chosen style.
+Set `meta.style` in the diagram, or pass `--style expressive` to `render`. Both themes share the chosen style. In restrained style, light mode uses chalky category fills by default. Set `meta.categoryFillParity` to `"dark"` or pass `--category-fill-parity dark` to use the dark recipe's category fills while keeping light surfaces and text. The HTML toolbar can switch fills without rerendering; `--category-fill-parity mode` restores the default.
 
 ## Install
 
