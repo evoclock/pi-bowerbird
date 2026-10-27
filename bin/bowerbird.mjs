@@ -15,7 +15,7 @@ const HELP = `bowerbird: reproducible HTML/SVG/PNG/WebP architecture diagrams
 
   bowerbird render <file.bower.json> [--out dir] [--view flat|iso] [--direction LR|TD] [--style restrained|expressive]
                    [--formats html,svg,png,webp] [--dark dark|path]
-                   [--light light|path] [--default-theme dark|light]
+                   [--light light|path] [--default-theme dark|light] [--category-fill-parity mode|dark]
                    [--embed-font [path]] [--scale 2] [--repo-root dir]
   bowerbird validate <file> [--strict]     schema + layout checks (strict: warnings fail)
   bowerbird sync <file> [--check] [--merge-ref origin/main] [--render ...]
@@ -32,7 +32,7 @@ statecharts (nodes with shape initial/final/choice, edges with event/guard/actio
 
 const opts = {
   out: { type: "string" }, view: { type: "string" }, formats: { type: "string" },
-  dark: { type: "string" }, light: { type: "string" }, "default-theme": { type: "string" },
+  dark: { type: "string" }, light: { type: "string" }, "default-theme": { type: "string" }, "category-fill-parity": { type: "string" },
   "embed-font": { type: "string" }, scale: { type: "string" }, "repo-root": { type: "string" },
   strict: { type: "boolean" }, check: { type: "boolean" }, render: { type: "boolean" },
   title: { type: "string" }, against: { type: "string" }, direction: { type: "string" }, "merge-ref": { type: "string" }, style: { type: "string" }, help: { type: "boolean", short: "h" },
@@ -58,6 +58,7 @@ async function main(argv) {
     view: values.view,
     direction: values.direction,
     style: values.style,
+    categoryFillParity: values["category-fill-parity"],
     formats: values.formats ? values.formats.split(",").map((s) => s.trim()) : FORMATS,
     darkTheme: values.dark, lightTheme: values.light,
     defaultTheme: values["default-theme"],

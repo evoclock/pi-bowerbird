@@ -87,6 +87,26 @@ test("viewer controls keep working after panning (flat and iso)", { skip: !exist
       const opened = await state();
       assert.equal(opened.drawer, true, `${page}: node click opens details`);
       assert.equal(opened.scroll, "0,0", `${page}: stage never scrolls`);
+      // Why: outside clicks must dismiss details without breaking X or node reopening.
+      await click("#details-h");
+      assert.equal((await state()).drawer, false, `${page}: outside click dismisses details`);
+      await click(".bb-node[tabindex]");
+      assert.equal((await state()).drawer, true, `${page}: node reopens after outside click`);
+      await click("#drawer-close");
+      assert.equal((await state()).drawer, false, `${page}: X dismisses details`);
+      await click("#theme");
+      await click(".bb-node[tabindex]");
+      assert.equal((await state()).drawer, true, `${page}: light node opens details`);
+      await click("#details-h");
+      assert.equal((await state()).drawer, false, `${page}: light outside click dismisses details`);
+      await click(".bb-node[tabindex]");
+      await click("#drawer-close");
+      assert.equal((await state()).drawer, false, `${page}: light X dismisses details`);
+      const before = await evalJs(`getComputedStyle(document.querySelector(".cat-sage .bb-mark, .bb-mark.cat-sage")).fill`);
+      await click("#category-fill-parity");
+      const after = await evalJs(`getComputedStyle(document.querySelector(".cat-sage .bb-mark, .bb-mark.cat-sage")).fill`);
+      assert.notEqual(after, before, `${page}: light parity toggle changes the fill`);
+      assert.equal(await evalJs(`document.documentElement.dataset.theme`), "light");
     }
   });
 });

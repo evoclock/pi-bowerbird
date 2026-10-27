@@ -37,6 +37,7 @@ export default function bowerbird(pi: any) {
           view: { type: "string", enum: ["flat", "iso"] },
           direction: { type: "string", enum: ["LR", "TD"], description: "Layout direction (overrides meta.direction)" },
           style: { type: "string", enum: ["restrained", "expressive"], description: "Design language: restrained (minimal, default) or expressive (expressive)" },
+          categoryFillParity: { type: "string", enum: ["mode", "dark"], description: "Light-mode category fills: default chalky or dark-mode parity" },
           formats: { type: "string", description: "Comma list of html,svg,png,webp (render)" },
           against: { type: "string", description: "Git ref for diff (default HEAD)" },
           check: { type: "boolean", description: "sync: report without writing; exits non-zero on changes" },
@@ -50,6 +51,7 @@ export default function bowerbird(pi: any) {
         if (p.view) args.push("--view", p.view);
         if (p.direction) args.push("--direction", p.direction);
         if (p.style) args.push("--style", p.style);
+        if (p.categoryFillParity) args.push("--category-fill-parity", p.categoryFillParity);
         if (p.formats) args.push("--formats", p.formats);
         if (p.against) args.push("--against", p.against);
         if (p.check) args.push("--check");
