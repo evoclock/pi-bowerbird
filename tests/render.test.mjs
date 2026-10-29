@@ -158,3 +158,22 @@ test("markdown escapes HTML and drops javascript: links", () => {
   assert.ok(!out.includes("javascript:"));
   assert.match(out, /href="lib\/x\.mjs"/);
 });
+
+test("html embeds Geist offline when font is passed (no Google Fonts CDN)", () => {
+  const light = loadTheme("light"), dark = loadTheme("dark");
+  const m = load("examples/bowerbird.bower.json");
+  const font = { ext: ".ttf", data: Buffer.from("fake-font-bytes") };
+  const html = renderHtml(m, layout(m), { light, dark, basename: "bowerbird", font });
+  assert.ok(html.includes("@font-face"));
+  assert.ok(html.includes("font-family:Geist"));
+  assert.ok(html.includes("data:font/ttf;base64,"));
+  assert.equal(html.includes("fonts.googleapis.com"), false);
+  assert.equal(html.includes("fonts.gstatic.com"), false);
+});
+
+test("html keeps Google Fonts CDN when font is omitted (compat)", () => {
+  const light = loadTheme("light"), dark = loadTheme("dark");
+  const m = load("examples/bowerbird.bower.json");
+  const html = renderHtml(m, layout(m), { light, dark, basename: "bowerbird" });
+  assert.ok(html.includes("fonts.googleapis.com"));
+});
