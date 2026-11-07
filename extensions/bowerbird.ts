@@ -7,10 +7,10 @@ import path from "node:path";
 const BIN = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "bin", "bowerbird.mjs");
 const ACTIONS = ["render", "validate", "check", "journeys", "tla", "diff", "sync", "snippets", "init"];
 
-function run(args: string[], cwd: string): Promise<{ code: number; out: string }> {
+function run(args: string[], cwd: string, signal?: AbortSignal): Promise<{ code: number; out: string }> {
   return new Promise((resolve) => {
-    execFile(process.execPath, [BIN, ...args], { cwd, maxBuffer: 32 * 1024 * 1024 }, (err, stdout, stderr) => {
-      const code = err ? (typeof (err as any).code === "number" ? (err as any).code : 1) : 0;
+    execFile(process.execPath, [BIN, ...args], { cwd, signal, maxBuffer: 32 * 1024 * 1024 }, (err, stdout, stderr) => {
+      const code = err ? (typeof (err as any).code === "number" ? (err as any).code : 2) : 0;
       resolve({ code, out: [stdout, stderr].filter(Boolean).join("\n").trim() });
     });
   });
@@ -56,8 +56,8 @@ export default function bowerbird(pi: any) {
         if (p.against) args.push("--against", p.against);
         if (p.check) args.push("--check");
         if (p.strict) args.push("--strict");
-        const { code, out } = await run(args, ctx?.cwd ?? process.cwd());
-        return { content: [{ type: "text", text: out || `(exit ${code})` }], details: { exitCode: code }, isError: code > 1 };
+        const { code, out } = await run(args, ctx?.cwd ?? process.cwd(), _signal as AbortSignal);
+        return { content: [{ type: "text", text: out || `(exit ${code})` }], details: { exitCode: code, outcome: code === 0 ? "ok" : code === 1 ? "failed" : "error" }, isError: code !== 0 };
       },
     });
   }
@@ -68,8 +68,8 @@ export default function bowerbird(pi: any) {
       argumentHint: "render docs/arch.bower.json --view iso",
       handler: async (args: string, ctx: any) => {
         const argv = String(args ?? "").trim().split(/\s+/).filter(Boolean);
-        const { out } = await run(argv.length ? argv : ["--help"], ctx?.cwd ?? process.cwd());
-        ctx?.ui?.notify?.(out, "info");
+        const { code, out } = await run(argv.length ? argv : ["--help"], ctx?.cwd ?? process.cwd());
+        ctx?.ui?.notify?.(out, code === 0 ? "info" : "error");
       },
     });
   }

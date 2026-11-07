@@ -72,7 +72,12 @@ async function main(argv) {
 
   switch (cmd) {
     case "render": {
-      const r = await build(file, clean(renderOpts()));
+      let r;
+      try { r = await build(file, clean(renderOpts())); }
+      catch (err) {
+        if (err.receipt) console.log(JSON.stringify(err.receipt, null, 2));
+        throw err;
+      }
       for (const w of r.warnings) console.error(`warning [${w.code}] ${w.message}`);
       for (const p of r.written) console.log(path.relative(process.cwd(), p));
       return 0;
@@ -107,14 +112,17 @@ async function main(argv) {
       return 0;
     }
     case "diff": {
-      const { ref, changes } = diffAgainst(file, { ref: values.against ?? "HEAD", repoRoot, current: loadDiagram(file) });
+      const { ref, changes } = diffAgainst(file, { ref: values.against ?? "HEAD", repoRoot, current: loadDiagram(file), sourcePath: process.env.BOWERBIRD_SOURCE_PATH ?? file });
       console.log(changes.length ? `changes since ${ref}:\n${changes.map((c) => `  ${c.text}`).join("\n")}` : `no changes since ${ref}`);
       return 0;
     }
     case "check": {
       const findings = analyse(loadDiagram(file));
       for (const f of findings) console.log(`${f.severity} [${f.code}] ${f.message}`);
-      if (!findings.length) console.log("ok: every state reachable, every state can finish, no ambiguous events");
+      if (!findings.some((f) => f.severity === "error")) {
+        const canFinish = !findings.some((f) => f.code === "no-final");
+        console.log(`ok: every state reachable${canFinish ? ", every state can finish" : ""}; initial transition valid; ambiguity checked`);
+      }
       return findings.some((f) => f.severity === "error") ? 1 : 0;
     }
     case "journeys": {

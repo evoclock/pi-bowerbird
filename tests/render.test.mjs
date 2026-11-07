@@ -1,6 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdtempSync, readdirSync, rmSync, writeFileSync, chmodSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { normalise } from "../lib/model.mjs";
 import { layout } from "../lib/layout.mjs";
 import { renderSvg } from "../lib/render-svg.mjs";
@@ -10,6 +13,38 @@ import { loadTheme } from "../lib/themes.mjs";
 import { markdown } from "../lib/markdown.mjs";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
+
+test("failed raster returns a receipt without publishing partial views", () => {
+  const out = mkdtempSync(path.join(os.tmpdir(), "bowerbird-render-"));
+  try {
+    const result = spawnSync(process.execPath, [fileURLToPath(new URL("../bin/bowerbird.mjs", import.meta.url)), "render", fileURLToPath(new URL("../examples/bowerbird.bower.json", import.meta.url)), "--out", out, "--formats", "html,svg,png", "--scale", "not-a-number"], { encoding: "utf8" });
+    assert.equal(result.status, 2);
+    const receipt = JSON.parse(result.stdout);
+    assert.deepEqual(receipt.written, []);
+    assert.deepEqual(receipt.skipped, ["iso"]);
+    assert.equal(receipt.failed[0].view, "flat");
+    assert.deepEqual(readdirSync(out), []);
+  } finally { rmSync(out, { recursive: true, force: true }); }
+});
+
+test("sequential WebP builds use unique scratch files outside the destination", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "bowerbird-webp-"));
+  try {
+    const bin = path.join(dir, "cwebp");
+    const log = path.join(dir, "scratch.log");
+    writeFileSync(bin, `#!/bin/sh\n[ "$1" = "-version" ] && exit 0\nprintf '%s\\n' "$4" >> "$BOWERBIRD_SCRATCH_LOG"\ncp "$4" "$6"\n`);
+    chmodSync(bin, 0o755);
+    const args = [fileURLToPath(new URL("../bin/bowerbird.mjs", import.meta.url)), "render", fileURLToPath(new URL("../examples/bowerbird.bower.json", import.meta.url)), "--out", dir, "--view", "flat", "--formats", "webp"];
+    for (let i = 0; i < 2; i++) {
+      const r = spawnSync(process.execPath, args, { encoding: "utf8", env: { ...process.env, PATH: `${dir}:${process.env.PATH}`, BOWERBIRD_SCRATCH_LOG: log } });
+      assert.equal(r.status, 0, r.stderr);
+    }
+    const names = readFileSync(log, "utf8").trim().split("\n");
+    assert.equal(names.length, 4);
+    assert.equal(new Set(names).size, 4);
+    assert.ok(names.every((name) => name.startsWith(os.tmpdir()) && !name.startsWith(dir)));
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
 
 const load = () => normalise(JSON.parse(readFileSync(new URL("../examples/bowerbird.bower.json", import.meta.url), "utf8")));
 const dark = loadTheme("dark");
