@@ -1,25 +1,42 @@
-#!/bin/sh
-# bowerbird pre-commit: keep diagrams in step with the code being committed.
-# Copy to .git/hooks/pre-commit (or call from your existing hook runner).
-# It never installs anything; bowerbird must already be on PATH or in
-# node_modules/.bin.
+#!/usr/bin/env bash
+# Check only staged diagrams, without reading or staging unstaged edits.
 set -eu
-
 BOWERBIRD="${BOWERBIRD:-bowerbird}"
 command -v "$BOWERBIRD" >/dev/null 2>&1 || BOWERBIRD="./node_modules/.bin/bowerbird"
 [ -x "$BOWERBIRD" ] || command -v "$BOWERBIRD" >/dev/null 2>&1 || { echo "bowerbird: not found, skipping diagram sync" >&2; exit 0; }
-
-git ls-files -z -- '*.bower.json' | while IFS= read -r -d '' f 2>/dev/null || [ -n "${f:-}" ]; do
-  [ -n "$f" ] || continue
-  if grep -q '"kind": *"statechart"' "$f"; then
-    "$BOWERBIRD" check "$f" || { echo "bowerbird: statechart findings in $f (fix or commit with --no-verify)" >&2; exit 1; }
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+work="$(mktemp -d "$root/.bowerbird-hook.XXXXXXXX")"
+trap 'python3 -c "import shutil,sys; shutil.rmtree(sys.argv[1])" "$work"' EXIT
+mkdir -p "$work/snap"
+git diff --cached --name-only -z --diff-filter=ACM -- '*.bower.json' > "$work/changed"
+while IFS= read -r -d '' f; do
+  mkdir -p "$work/snap/$(dirname "$f")"
+  snapshot="$work/snap/$f"
+  git show ":$f" > "$snapshot"
+  if grep -q '"kind": *"statechart"' "$snapshot"; then
+    "$BOWERBIRD" check "$snapshot" || { echo "bowerbird: statechart findings in $f" >&2; exit 1; }
   fi
-  if grep -q '"statusTracking": *true' "$f"; then
-    "$BOWERBIRD" sync "$f"
+  if grep -q '"statusTracking": *true' "$snapshot"; then
+    "$BOWERBIRD" sync "$snapshot" --repo-root "$root"
+    mode="$(git ls-files -s -- "$f" | cut -d ' ' -f 1)"
+    oid="$(git hash-object -w "$snapshot")"
+    git update-index --cacheinfo "$mode,$oid,$f"
   fi
-  "$BOWERBIRD" diff "$f"
+  BOWERBIRD_SOURCE_PATH="$root/$f" "$BOWERBIRD" diff "$snapshot" --repo-root "$root"
   out="$(dirname "$f")"
-  "$BOWERBIRD" render "$f" --out "$out" --formats html,svg,webp >/dev/null
-  git add -- "$f" "$out"/"$(basename "$f" .bower.json)".*
-  f=""
-done
+  rendered="$("$BOWERBIRD" render "$snapshot" --out "$out" --repo-root "$root" --formats html,svg,webp)"
+  base="$(basename "$f" .bower.json)"
+  # Only stage paths reported by this render, and only its known output names.
+  while IFS= read -r generated; do
+    for view in flat iso single; do
+      prefix="$base.$view"
+      [ "$view" = single ] && prefix="$base"
+      for suffix in html svg dark.svg light.svg dark.webp light.webp; do
+        target="$out/$prefix.$suffix"
+        target="${target#./}"
+        [ "$generated" = "$target" ] && [ -f "$target" ] && git add -- "$target"
+      done
+    done
+  done <<< "$rendered"
+done < "$work/changed"
