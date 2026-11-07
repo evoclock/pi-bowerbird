@@ -31,12 +31,15 @@ test("sequential WebP builds use unique scratch files outside the destination", 
   const dir = mkdtempSync(path.join(os.tmpdir(), "bowerbird-webp-"));
   try {
     const bin = path.join(dir, "cwebp");
+    const raster = path.join(dir, "rsvg-convert");
     const log = path.join(dir, "scratch.log");
-    writeFileSync(bin, `#!/bin/sh\n[ "$1" = "-version" ] && exit 0\nprintf '%s\\n' "$4" >> "$BOWERBIRD_SCRATCH_LOG"\ncp "$4" "$6"\n`);
+    writeFileSync(bin, `#!/bin/sh\n[ "$1" = "-version" ] && exit 0\nprintf '%s\\n' "$4" >> "$BOWERBIRD_SCRATCH_LOG"\n/bin/cp "$4" "$6"\n`);
+    writeFileSync(raster, `#!/bin/sh\n[ "$1" = "--version" ] && exit 0\nprintf 'stub PNG bytes'\n`);
     chmodSync(bin, 0o755);
+    chmodSync(raster, 0o755);
     const args = [fileURLToPath(new URL("../bin/bowerbird.mjs", import.meta.url)), "render", fileURLToPath(new URL("../examples/bowerbird.bower.json", import.meta.url)), "--out", dir, "--view", "flat", "--formats", "webp"];
     for (let i = 0; i < 2; i++) {
-      const r = spawnSync(process.execPath, args, { encoding: "utf8", env: { ...process.env, PATH: `${dir}:${process.env.PATH}`, BOWERBIRD_SCRATCH_LOG: log } });
+      const r = spawnSync(process.execPath, args, { encoding: "utf8", env: { ...process.env, PATH: dir, BOWERBIRD_SCRATCH_LOG: log } });
       assert.equal(r.status, 0, r.stderr);
     }
     const names = readFileSync(log, "utf8").trim().split("\n");
