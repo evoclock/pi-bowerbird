@@ -1,0 +1,17 @@
+{
+  "schema": "bowerbird/v1",
+  "meta": { "title": "Grouped rule evidence", "statusTracking": true },
+  "nodes": [
+    { "id": "group-a", "title": "Group A", "at": [0, 0], "status": "implemented", "evidence": { "marks": [
+      { "kind": "breaks", "label": "Rule A", "trace": "https://example.org/trace#a" },
+      { "kind": "assumed", "label": "Join unproved" },
+      { "kind": "repeats", "label": "Route 2" }
+    ] } },
+    { "id": "group-b", "title": "Group B", "at": [1, 0], "status": "planned", "evidence": { "marks": [
+      { "kind": "mayBreak", "label": "Rule B", "trace": "records/b.json" },
+      { "kind": "bugPath", "label": "Loop" },
+      { "kind": "unchecked", "label": "No check yet" }
+    ] } }
+  ],
+  "edges": []
+}

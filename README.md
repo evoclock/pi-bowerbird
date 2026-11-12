@@ -102,6 +102,19 @@ bowerbird diff docs/diagrams/system.bower.json    # structural changes since HEA
 
 `templates/hooks/pre-commit` runs check, sync, diff, and render, then stages the outputs. Copy it into `.git/hooks/` to opt in.
 
+### Supplied evidence marks
+
+Add `evidence.marks` to a node to display externally supplied labels in SVG and the keyboard-readable HTML evidence list:
+
+```json
+"evidence": { "marks": [
+  { "kind": "breaks", "label": "Rule A", "trace": "https://example.org/trace#a" },
+  { "kind": "unchecked", "label": "Review pending" }
+] }
+```
+
+Kinds are `breaks`, `mayBreak`, `bugPath`, `repeats`, `assumed`, and `unchecked`. Optional `trace` links accept HTTPS URLs or safe relative paths. These marks do not change build status or verifier findings. Existing `evidence.paths` and `evidence.tests` still drive status sync; sync preserves the evidence value's original JSON bytes.
+
 ## Embedding
 
 ```html
