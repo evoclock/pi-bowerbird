@@ -8,9 +8,11 @@
   ],
   "nodes": [
     { "id": "receive", "title": "Receive", "zone": "intake", "at": [0, 0] },
-    { "id": "retry", "title": "Retry", "zone": "repair", "at": [3, 0] }
+    { "id": "retry", "title": "Retry", "zone": "repair", "at": [3, 0] },
+    { "id": "escalate", "title": "Escalate", "zone": "repair", "at": [3, 2] }
   ],
   "edges": [
-    { "id": "act-retry", "from": "receive", "to": "retry", "kind": "failure", "event": "timeout", "action": "retry" }
+    { "id": "act-retry", "from": "receive", "to": "retry", "kind": "failure", "event": "timeout", "action": "retry" },
+    { "id": "act-escalate", "from": "receive", "to": "escalate", "kind": "failure", "event": "retries exhausted", "action": "escalate" }
   ]
 }

@@ -16,7 +16,9 @@ test("parent zone wraps two child zones without changing actions, IDs or failure
   const lay = layout(m);
   assert.deepEqual(lay.warnings, []);
   assert.deepEqual(m.nodes.map((n) => n.id), source.nodes.map((n) => n.id));
-  assert.deepEqual(m.edges.map((e) => [e.id, e.action, e.kind, e.index]), [["act-retry", "retry", "failure", 0]]);
+  assert.deepEqual(m.edges.map((e) => [e.id, e.action, e.kind, e.index]), [
+    ["act-retry", "retry", "failure", 0], ["act-escalate", "escalate", "failure", 1],
+  ]);
   assert.deepEqual(lay.groups.map((g) => g.id), ["recovery"]);
   const group = lay.groups[0].rect;
   for (const child of lay.zones) {
@@ -32,7 +34,9 @@ test("parent zone wraps two child zones without changing actions, IDs or failure
       assert.match(output, /data-group="recovery"/);
       assert.match(output, /data-id="receive"/);
       assert.match(output, /data-id="retry"/);
+      assert.match(output, /data-id="escalate"/);
       assert.match(output, /data-from="receive" data-to="retry"/);
+      assert.match(output, /data-from="receive" data-to="escalate"/);
       assert.match(output, /class="bb-edge failure map-item"/);
     }
   }
