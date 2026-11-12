@@ -1,0 +1,11 @@
+{
+  "schema": "bowerbird/v1",
+  "meta": { "title": "Unsupported nesting" },
+  "zones": [
+    { "id": "outer", "title": "Outer" },
+    { "id": "middle", "title": "Middle", "parent": "outer" },
+    { "id": "inner", "title": "Inner", "parent": "middle" }
+  ],
+  "nodes": [{ "id": "leaf", "title": "Leaf", "at": [0, 0], "zone": "inner" }],
+  "edges": []
+}
