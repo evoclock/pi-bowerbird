@@ -1,6 +1,6 @@
 {
   "name": "@evoclock/pi-bowerbird",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Reproducible architecture diagrams, statecharts, and concept maps for pi: interactive HTML, animated theme-aware SVG for READMEs and MARP, PNG/WebP export, built-vs-planned tracking, and TLA+ from statecharts.",
   "type": "module",
   "license": "MIT",

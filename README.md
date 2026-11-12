@@ -28,7 +28,7 @@ Same diagram in isometric view:
 - **Built versus planned.** Each component can show whether it is built, partial, or planned, kept current from git by an optional pre-commit hook.
 - **Statecharts that check themselves.** Unreachable states, dead ends, and ambiguous events are flagged and drawn on the chart. The same file exports a TLA+ spec and Given/When/Then paths.
 - **Click through to code.** The HTML page opens a details drawer for each component, with links to the real files.
-- **Room to explore.** Zoom, pan, fit, fullscreen, and a minimap in every HTML page.
+- **Room to explore.** Zoom, pan, fit, fullscreen, and a minimap in every HTML page. With `--embed-font`, HTML embeds a local Geist font so it works offline.
 
 ## Modes
 
@@ -101,6 +101,36 @@ bowerbird diff docs/diagrams/system.bower.json    # structural changes since HEA
 ```
 
 `templates/hooks/pre-commit` runs check, sync, diff, and render, then stages the outputs. Copy it into `.git/hooks/` to opt in.
+
+### Groups and parallel regions
+
+Flat diagrams can group zones one level deep. Give child zones a `parent` that names a top-level zone; the parent draws a boundary around its children and cannot contain nodes directly. For named parallel regions, give at least two sibling child zones titles and `"parallel": true`. Each needs a node. The flat view labels their boundaries and cross-region conditions; this is static signage, not an execution or concurrency model. The isometric view does not draw these group boundaries.
+
+```json
+"zones": [
+  { "id": "flow", "title": "Flow" },
+  { "id": "intake", "title": "Intake", "parent": "flow", "parallel": true },
+  { "id": "review", "title": "Review", "parent": "flow", "parallel": true }
+]
+```
+
+### Per-diagram renderer extensions
+
+JavaScript callers can pass `{ extensions: [extension] }` to `normalise(input, options)`. Extensions apply only to that diagram, in registration order. Hooks include `validate(input, fail)`, `normalise(model)`, `layout(model, layout)`, `svg(model, layout)`, and `html(model, layout, { view })`. The SVG and HTML hooks return markup; validation reports problems through `fail(code, message)`. `createExtensions` in `lib/extensions.mjs` validates extension entries.
+
+An extension can also claim input fields through `fields` keyed by `node`, `zone`, `edge`, `meta`, or `top`. Each field may define `validate(value, fail, source)` and `normalise(value, source)`. A field can have only one owner per scope. Declare fields on the extension passed to `normalise`; no process-wide registry or CLI flag is required.
+
+```js
+import { normalise } from "@evoclock/pi-bowerbird/lib/model.mjs";
+
+const extension = {
+  fields: { node: { priority: {
+    validate(value, fail) { if (!Number.isInteger(value)) fail("priority", "must be an integer"); },
+    normalise(value) { return value; }
+  } } }
+};
+const model = normalise(input, { extensions: [extension] });
+```
 
 ### Supplied evidence marks
 
