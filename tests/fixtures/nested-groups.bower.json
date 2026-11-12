@@ -1,0 +1,16 @@
+{
+  "schema": "bowerbird/v1",
+  "meta": { "title": "Recovery groups", "grid": { "col": 320, "row": 210, "gap": 90 }, "view": "flat" },
+  "zones": [
+    { "id": "recovery", "title": "Recovery" },
+    { "id": "intake", "title": "Intake", "parent": "recovery" },
+    { "id": "repair", "title": "Repair", "parent": "recovery" }
+  ],
+  "nodes": [
+    { "id": "receive", "title": "Receive", "zone": "intake", "at": [0, 0] },
+    { "id": "retry", "title": "Retry", "zone": "repair", "at": [3, 0] }
+  ],
+  "edges": [
+    { "id": "act-retry", "from": "receive", "to": "retry", "kind": "failure", "event": "timeout", "action": "retry" }
+  ]
+}
