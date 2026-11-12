@@ -27,12 +27,20 @@ function collect(dir, relative = "") {
 for (const folder of ["examples", "tests"]) collect(path.join(baseline, folder), folder);
 diagrams.sort();
 let compared = 0;
+let rejected = 0;
 for (const diagram of diagrams) {
+  const runs = [];
   for (const [label, source] of [["base", baseline], ["branch", root]]) {
     const out = path.join(attempt, "results", label, diagram);
     mkdirSync(out, { recursive: true });
-    const run = spawnSync(process.execPath, [path.join(source, "bin/bowerbird.mjs"), "render", path.join(source, diagram), "--out", out, "--formats", "svg,html", "--repo-root", root], { cwd: source, encoding: "utf8" });
-    if (run.status !== 0) throw new Error(`${label} ${diagram}: ${run.stderr || run.stdout}`);
+    runs.push(spawnSync(process.execPath, [path.join(source, "bin/bowerbird.mjs"), "render", path.join(source, diagram), "--out", out, "--formats", "svg,html", "--repo-root", root], { cwd: source, encoding: "utf8" }));
+  }
+  if (runs[0].status !== 0 || runs[1].status !== 0) {
+    if (runs[0].status !== runs[1].status || runs[0].stderr !== runs[1].stderr || runs[0].stdout !== runs[1].stdout) {
+      throw new Error(`render result differs: ${diagram}`);
+    }
+    rejected++;
+    continue;
   }
   function files(dir, rel = "") {
     return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => entry.isDirectory() ? files(path.join(dir, entry.name), path.join(rel, entry.name)) : [path.join(rel, entry.name)]).sort();
@@ -45,4 +53,4 @@ for (const diagram of diagrams) {
   }
   compared++;
 }
-console.log(`${compared} diagrams compared, zero SVG/HTML diffs`);
+console.log(`${compared} diagrams compared, zero SVG/HTML diffs; ${rejected} expected failures matched`);
