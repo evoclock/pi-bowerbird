@@ -5,6 +5,19 @@ All notable changes to `@evoclock/pi-bowerbird` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-11-12
+
+### Added
+- HTML embeds a local Geist font when `--embed-font` is set ([#9](https://github.com/evoclock/pi-bowerbird/pull/9)).
+- Per-diagram renderer extensions with validation, normalisation, layout, SVG, and HTML hooks ([#11](https://github.com/evoclock/pi-bowerbird/pull/11)).
+- Flat diagrams support one level of parent zone groups ([#12](https://github.com/evoclock/pi-bowerbird/pull/12)).
+- Supplied evidence marks render independently of build status ([#13](https://github.com/evoclock/pi-bowerbird/pull/13)).
+- Extension-owned input fields can be registered per scope ([#14](https://github.com/evoclock/pi-bowerbird/pull/14)).
+- Flat diagrams label named parallel sibling regions without implying execution order ([#15](https://github.com/evoclock/pi-bowerbird/pull/15)).
+
+### Fixed
+- Diagram checks and render outcomes report failures reliably and avoid partial output ([#10](https://github.com/evoclock/pi-bowerbird/pull/10)).
+
 ## [0.1.2] - 2026-10-27
 
 ### Added
@@ -25,5 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Theme-aware isometric architecture example and Pi npm package install docs (see [v0.1.1 release](https://github.com/evoclock/pi-bowerbird/releases/tag/v0.1.1)).
 
+[0.2.0]: https://github.com/evoclock/pi-bowerbird/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/evoclock/pi-bowerbird/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/evoclock/pi-bowerbird/releases/tag/v0.1.1
