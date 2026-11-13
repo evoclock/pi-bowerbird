@@ -45,6 +45,15 @@ test("delta preserves hand fields and node IDs, removes stale task edges", () =>
   assert.deepEqual(diagram.edges, [{ from: "custom-first", to: "T03", kind: "control", label: "blocks" }]);
 });
 
+// Why: a changed long title must refresh imported details without losing the full task text.
+test("long task names refresh full-text details", () => {
+  const d = planDiagram({ tasks: "### T01. Long task title for release\n" });
+  const next = planDiagram({ tasks: "### T01. Longer task title for release\n" });
+  const result = updatePlan(d, next);
+  assert.equal(result.changed, true);
+  assert.match(result.diagram.nodes[0].details, /Task: Longer task title for release/);
+});
+
 // Why: an accidental ID collision must stop instead of replacing a hand-authored item.
 test("new task cannot take a hand-authored ID", () => {
   const d = initial();
