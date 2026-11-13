@@ -28,7 +28,8 @@ test("task dependencies and headings form stable nodes and directed edges", () =
   assert.deepEqual(d.edges, [{ from: "T01", to: "T02A", kind: "control", label: "blocks" }, { from: "T19", to: "T20", kind: "control", label: "blocks" }]);
   assert.equal(d.nodes.find((n) => n.id === "T02A").status, "partial");
   assert.equal(d.nodes.find((n) => n.id === "T02A").planId, "T02A");
-  assert.equal(d.nodes.find((n) => n.id === "T21").title, "Draw evidence marks without changing build status");
+  assert.equal(d.nodes.find((n) => n.id === "T21").title, "Draw evidence mar…");
+  assert.match(d.nodes.find((n) => n.id === "T21").details, /Task: Draw evidence marks without changing build status/);
   assert.doesNotThrow(() => normalise(d));
 });
 
