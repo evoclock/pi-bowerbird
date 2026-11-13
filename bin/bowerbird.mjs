@@ -2,6 +2,7 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { writePlanFile } from "../lib/plan-file.mjs";
 import { analyse, journeys, toTla } from "../lib/verify.mjs";
+import { preflight } from "../lib/tlc-preflight.mjs";
 import { diffAgainst } from "../lib/diff.mjs";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -32,7 +33,9 @@ const HELP = `bowerbird: reproducible HTML/SVG/PNG/WebP architecture diagrams
 statecharts (nodes with shape initial/final/choice, edges with event/guard/action):
   bowerbird check <file>                   unreachable states, dead ends, ambiguous events
   bowerbird journeys <file>                initial -> final paths as Given/When/Then
-  bowerbird tla <file> [--out dir]         TLA+ module + TLC config for model checking
+  bowerbird tla <file> [--out dir]         abstract control-flow export (does not run TLC)
+  bowerbird verify <file.tla> --config <file.cfg> [--java executable]
+                                           preflight only; no TLC run yet (exit 2)
 `;
 
 const opts = {
@@ -40,7 +43,7 @@ const opts = {
   dark: { type: "string" }, light: { type: "string" }, "default-theme": { type: "string" }, "light-flat-fill": { type: "string" },
   "embed-font": { type: "string" }, scale: { type: "string" }, "repo-root": { type: "string" },
   strict: { type: "boolean" }, check: { type: "boolean" }, render: { type: "boolean" },
-  title: { type: "string" }, tasks: { type: "string" }, spec: { type: "string", multiple: true }, prs: { type: "string" }, update: { type: "string" }, against: { type: "string" }, direction: { type: "string" }, "merge-ref": { type: "string" }, style: { type: "string" }, help: { type: "boolean", short: "h" },
+  title: { type: "string" }, config: { type: "string" }, java: { type: "string" }, tasks: { type: "string" }, spec: { type: "string", multiple: true }, prs: { type: "string" }, update: { type: "string" }, against: { type: "string" }, direction: { type: "string" }, "merge-ref": { type: "string" }, style: { type: "string" }, help: { type: "boolean", short: "h" },
 };
 
 function embedFlag(argv) {
@@ -74,6 +77,12 @@ async function main(argv) {
   const clean = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
 
   switch (cmd) {
+    case "verify": {
+      if (positionals.length !== 2) throw new Error("verify: expected exactly one .tla model");
+      const ready = preflight(file, values.config, { java: values.java });
+      console.error(`verify: inputs and Java ${ready.javaVersion} ready; TLC has not run; no rules checked`);
+      return 2;
+    }
     case "plan": {
       if (file || !values.tasks || (!values.out && !values.update)) throw new Error("plan: expected --tasks <md> --out <file.bower.json> (no positional file)");
       const result = writePlanFile({ tasksPath: values.tasks, specPaths: values.spec ?? [], prsPath: values.prs,

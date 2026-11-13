@@ -90,8 +90,16 @@ Statecharts:
 ```sh
 bowerbird check examples/proposal-to-merge.bower.json      # dead ends, unreachable, ambiguous
 bowerbird journeys examples/proposal-to-merge.bower.json   # Given/When/Then paths
-bowerbird tla examples/proposal-to-merge.bower.json        # TLA+ module and TLC config
+bowerbird tla examples/proposal-to-merge.bower.json        # abstract control-flow export, not a TLC check
 ```
+
+The first TLA+-first verification unit accepts independently authored `.tla` and `.cfg` inputs:
+
+```sh
+bowerbird verify tests/fixtures/Counter.tla --config tests/fixtures/Counter.cfg
+```
+
+This command **only preflights inputs and Java 17+** (use `--java` to select an executable). It does not invoke TLC, check rules, produce a chart, or report a model verdict yet. It always exits 2 (incomplete), including when prerequisites are ready. The `tla` exporter and graph checks are likewise not model verification. A future completed finite model check would support only its specific model/config and assumptions, not correctness of the implementation.
 
 Keeping a map current:
 
