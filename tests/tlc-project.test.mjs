@@ -25,7 +25,7 @@ test("flat adapter rejects unchecked, missing and over-budget model edges", () =
   const evidence = { schema: "bowerbird/tlc-evidence/v1", outcome: "completed", states: [{ id: "1", values: { count: { type: "integer", value: "0" } } }],
     edges: [{ from: "1", to: "2", action: "Go" }], initial: ["1"], rules: [{ id: "TypeOK", status: "checked-no-violation" }], trace: null };
   assert.throws(() => projectFlat(evidence), /missing concrete transition/);
-  assert.throws(() => projectFlat({ ...evidence, edges: [], states: Array.from({ length: 101 }, (_, i) => ({ id: String(i), values: {} })) }), /budget exceeded/);
+  assert.throws(() => projectFlat({ ...evidence, edges: [], states: Array.from({ length: 501 }, (_, i) => ({ id: String(i), values: {} })) }), /chart omitted.*500-state chart budget/);
   const loop = projectFlat({ ...evidence, edges: [{ from: "1", to: "1", action: "Tick" }] });
   assert.equal(loop.edges[0].from, loop.edges[0].to);
   assert.equal(loop.nodes.length, 1);
