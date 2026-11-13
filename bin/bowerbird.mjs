@@ -36,7 +36,8 @@ statecharts (nodes with shape initial/final/choice, edges with event/guard/actio
   bowerbird tla <file> [--out dir]         abstract control-flow export (does not run TLC)
   bowerbird verify <file.tla> --config <file.cfg> --tlc-jar <pinned.jar> --out <new-dir>
                    [--java executable] [--timeout-ms 60000]
-                                           TLC execution + flat model-evidence chart
+                                           TLC execution + report.md + flat model-evidence chart
+                                           exit 0: completed/no violation; 1: model violation; 2: incomplete/error (including cancellation)
 `;
 
 const opts = {
@@ -87,7 +88,7 @@ async function main(argv) {
       try {
         const result = await runTlc(file, values.config, { java: values.java, jar: values["tlc-jar"], out: values.out,
           timeoutMs: values["timeout-ms"] === undefined ? undefined : Number(values["timeout-ms"]), signal: controller.signal });
-        console.error(`verify: ${result.outcome}; raw logs, typed evidence and flat chart (when supported) in ${values.out}; finite model/config only, not implementation correctness`);
+        console.error(`verify: ${result.outcome} (exit ${result.exitCode}); ${result.report?.status === "written" ? `report.md and evidence in ${values.out}` : `report unavailable; evidence in ${values.out}`}; finite model/config only, not implementation correctness`);
         return result.exitCode;
       } finally {
         process.removeListener("SIGINT", cancel);
