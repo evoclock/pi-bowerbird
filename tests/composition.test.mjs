@@ -18,6 +18,8 @@ const run = (...args) => spawnSync(process.execPath, [cli, ...args], { encoding:
 test("rejects invalid status, group, endpoint, type and step", () => {
   const cases = [
     ["composition-status", (c) => { c.groups[0].status = "unknown"; }],
+    ["composition-status", (c) => { delete c.components[0].status; }],
+    ["composition-id", (c) => { c.components[0] = null; }],
     ["composition-group", (c) => { c.components[0].group = "missing"; }],
     ["composition-endpoint", (c) => { c.edges[0].to = "missing"; }],
     ["composition-type", (c) => { c.edges[0].to = "test"; }],
@@ -47,6 +49,9 @@ test("single-file golden has exact markers and group and component slabs", () =>
     for (const id of golden.groups) assert.match(html, new RegExp(`data-id="${id}"`));
     for (const id of golden.components) assert.match(html, new RegExp(`data-id="${id}"`));
     assert.match(html, /iso-roof/);
+    assert.match(html, /3 · B2 P0 L1 · BUILT/);
+    assert.match(html, /1 · B0 P1 L0 · PARTIAL/);
+    assert.match(html, /B built, P partial, L planned/);
   } finally { rmSync(tmp, { recursive: true, force: true }); }
 });
 
