@@ -1,0 +1,21 @@
+{
+  "schema": "bowerbird/v1",
+  "meta": { "title": "Flock composition" },
+  "composition": {
+    "groups": [
+      { "id": "planning", "title": "Planning", "status": "partial" },
+      { "id": "execution", "title": "Execution", "status": "built" }
+    ],
+    "components": [
+      { "id": "ship", "title": "Ship", "type": "workflow", "group": "planning", "purpose": "Coordinate release steps", "status": "partial" },
+      { "id": "review", "title": "Review", "type": "playbook", "group": "execution", "purpose": "Check the change", "status": "built" },
+      { "id": "test", "title": "Test", "type": "skill", "group": "execution", "purpose": "Run checks", "status": "built" },
+      { "id": "publish", "title": "Publish", "type": "playbook", "group": "execution", "purpose": "Prepare delivery", "status": "planned" }
+    ],
+    "edges": [
+      { "from": "ship", "to": "review", "step": 1 },
+      { "from": "ship", "to": "publish", "step": 2 },
+      { "from": "review", "to": "test", "step": 1 }
+    ]
+  }
+}
