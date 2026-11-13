@@ -36,7 +36,7 @@ statecharts (nodes with shape initial/final/choice, edges with event/guard/actio
   bowerbird tla <file> [--out dir]         abstract control-flow export (does not run TLC)
   bowerbird verify <file.tla> --config <file.cfg> --tlc-jar <pinned.jar> --out <new-dir>
                    [--java executable] [--timeout-ms 60000]
-                                           TLC execution + typed finite-state evidence
+                                           TLC execution + flat model-evidence chart
 `;
 
 const opts = {
@@ -87,7 +87,7 @@ async function main(argv) {
       try {
         const result = await runTlc(file, values.config, { java: values.java, jar: values["tlc-jar"], out: values.out,
           timeoutMs: values["timeout-ms"] === undefined ? undefined : Number(values["timeout-ms"]), signal: controller.signal });
-        console.error(`verify: ${result.outcome}; raw logs and typed evidence in ${values.out}; finite model/config only, not implementation correctness`);
+        console.error(`verify: ${result.outcome}; raw logs, typed evidence and flat chart (when supported) in ${values.out}; finite model/config only, not implementation correctness`);
         return result.exitCode;
       } finally {
         process.removeListener("SIGINT", cancel);
@@ -147,7 +147,9 @@ async function main(argv) {
       return 0;
     }
     case "check": {
-      const findings = analyse(loadDiagram(file));
+      const model = loadDiagram(file);
+      if (model.meta.verificationProjection) throw new Error("check: model-derived chart is not an authored graph check; consult its TLC evidence");
+      const findings = analyse(model);
       for (const f of findings) console.log(`${f.severity} [${f.code}] ${f.message}`);
       if (!findings.some((f) => f.severity === "error")) {
         const canFinish = !findings.some((f) => f.code === "no-final");
@@ -156,7 +158,9 @@ async function main(argv) {
       return findings.some((f) => f.severity === "error") ? 1 : 0;
     }
     case "journeys": {
-      console.log(journeys(loadDiagram(file)).join("\n\n"));
+      const model = loadDiagram(file);
+      if (model.meta.verificationProjection) throw new Error("journeys: model-derived chart is not an exhaustive behaviour map; consult its TLC evidence");
+      console.log(journeys(model).join("\n\n"));
       return 0;
     }
     case "tla": {
