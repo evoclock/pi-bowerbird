@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, feat/tla-preflight-v1]
+    branches: [main, feat/tla-preflight-v1, feat/tla-runner-v1]
   push:
-    branches: [main, feat/tla-runner-v1]
+    branches: [main, feat/tla-runner-v1, feat/tla-evidence-v1]
     tags: ['v*']
 
 permissions:

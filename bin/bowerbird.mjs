@@ -36,7 +36,7 @@ statecharts (nodes with shape initial/final/choice, edges with event/guard/actio
   bowerbird tla <file> [--out dir]         abstract control-flow export (does not run TLC)
   bowerbird verify <file.tla> --config <file.cfg> --tlc-jar <pinned.jar> --out <new-dir>
                    [--java executable] [--timeout-ms 60000]
-                                           raw TLC execution; no typed rule evidence yet
+                                           TLC execution + typed finite-state evidence
 `;
 
 const opts = {
@@ -87,7 +87,7 @@ async function main(argv) {
       try {
         const result = await runTlc(file, values.config, { java: values.java, jar: values["tlc-jar"], out: values.out,
           timeoutMs: values["timeout-ms"] === undefined ? undefined : Number(values["timeout-ms"]), signal: controller.signal });
-        console.error(`verify: ${result.outcome}; raw TLC evidence in ${values.out}; finite model/config only, not implementation correctness`);
+        console.error(`verify: ${result.outcome}; raw logs and typed evidence in ${values.out}; finite model/config only, not implementation correctness`);
         return result.exitCode;
       } finally {
         process.removeListener("SIGINT", cancel);
