@@ -63,4 +63,6 @@ test("CLI update leaves a custom-formatted file byte-identical", () => {
   const before = readFileSync(output);
   execFileSync(process.execPath, ["bin/bowerbird.mjs", "plan", "--tasks", tasks, "--update", output]);
   assert.deepEqual(readFileSync(output), before);
+  assert.throws(() => execFileSync(process.execPath, ["bin/bowerbird.mjs", "plan", "--tasks", tasks, "--update", output, "--out", tasks], { stdio: "pipe" }), /output cannot replace an input document/);
+  assert.equal(readFileSync(tasks, "utf8"), source);
 });
