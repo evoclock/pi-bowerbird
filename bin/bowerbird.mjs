@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { planDiagram } from "../lib/plan.mjs";
+import { updatePlan } from "../lib/plan-update.mjs";
 import { analyse, journeys, toTla } from "../lib/verify.mjs";
 import { diffAgainst } from "../lib/diff.mjs";
 import path from "node:path";
@@ -23,7 +24,7 @@ const HELP = `bowerbird: reproducible HTML/SVG/PNG/WebP architecture diagrams
   bowerbird validate <file> [--strict]     schema + layout checks (strict: warnings fail)
   bowerbird sync <file> [--check] [--merge-ref origin/main] [--render ...]
                                            refresh node status from git evidence
-  bowerbird plan --tasks <md> [--spec <md> ...] [--prs <json>] --out <file.bower.json>
+  bowerbird plan --tasks <md> [--spec <md> ...] [--prs <json>] --out <file.bower.json> [--update <existing.bower.json>]
                                            import planned work from task ledgers
   bowerbird init <file> [--title "..."]    write a starter diagram
   bowerbird snippets <file> [--out dir]    README <picture>, MARP, and markdown embeds
@@ -40,7 +41,7 @@ const opts = {
   dark: { type: "string" }, light: { type: "string" }, "default-theme": { type: "string" }, "light-flat-fill": { type: "string" },
   "embed-font": { type: "string" }, scale: { type: "string" }, "repo-root": { type: "string" },
   strict: { type: "boolean" }, check: { type: "boolean" }, render: { type: "boolean" },
-  title: { type: "string" }, tasks: { type: "string" }, spec: { type: "string", multiple: true }, prs: { type: "string" }, against: { type: "string" }, direction: { type: "string" }, "merge-ref": { type: "string" }, style: { type: "string" }, help: { type: "boolean", short: "h" },
+  title: { type: "string" }, tasks: { type: "string" }, spec: { type: "string", multiple: true }, prs: { type: "string" }, update: { type: "string" }, against: { type: "string" }, direction: { type: "string" }, "merge-ref": { type: "string" }, style: { type: "string" }, help: { type: "boolean", short: "h" },
 };
 
 function embedFlag(argv) {
@@ -75,17 +76,23 @@ async function main(argv) {
 
   switch (cmd) {
     case "plan": {
-      if (file || !values.tasks || !values.out) throw new Error("plan: expected --tasks <md> --out <file.bower.json> (no positional file)");
-      const diagram = planDiagram({
+      if (file || !values.tasks || (!values.out && !values.update)) throw new Error("plan: expected --tasks <md> --out <file.bower.json> (no positional file)");
+      const destination = values.out ?? values.update;
+      const identity = (p) => existsSync(p) ? realpathSync(p) : path.resolve(p);
+      if ([values.tasks, ...(values.spec ?? []), values.prs].filter(Boolean).some((p) => identity(p) === identity(destination))) throw new Error("plan: output cannot replace an input document");
+      const imported = planDiagram({
         tasks: readFileSync(values.tasks, "utf8"),
         specs: (values.spec ?? []).map((p) => readFileSync(p, "utf8")),
         prs: values.prs ? JSON.parse(readFileSync(values.prs, "utf8")) : [],
         title: values.title ?? "Planned work",
       });
-      const output = JSON.stringify(diagram, null, 2) + "\n";
-      if (existsSync(values.out) && readFileSync(values.out, "utf8") !== output) throw new Error(`plan: refusing to overwrite differing output ${values.out}`);
-      if (!existsSync(values.out)) writeFileSync(values.out, output, { flag: "wx" });
-      console.log(`wrote ${values.out}`);
+      const current = values.update ? readFileSync(values.update, "utf8") : null;
+      const { diagram, changed } = current ? updatePlan(JSON.parse(current), imported) : { diagram: imported, changed: true };
+      const output = current && !changed ? current : JSON.stringify(diagram, null, 2) + "\n";
+      if (existsSync(destination) && readFileSync(destination, "utf8") !== output && (!values.update || identity(destination) !== identity(values.update))) throw new Error(`plan: refusing to overwrite differing output ${destination}`);
+      if (!existsSync(destination)) writeFileSync(destination, output, { flag: "wx" });
+      else if (readFileSync(destination, "utf8") !== output) writeFileSync(destination, output);
+      console.log(`${changed ? "wrote" : "unchanged"} ${destination}`);
       return 0;
     }
     case "render": {
