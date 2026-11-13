@@ -46,7 +46,7 @@ test("malformed and incomplete machine graphs reject rather than invent states",
   const reduced = interpretEvidence({ exitCode: 0, inputs: { config: { path: reducedConfig } } }, destination);
   assert.equal(reduced.outcome, "unchecked");
   assert.ok(reduced.rules.every((rule) => rule.status === "unchecked"));
-  assert.match(reduced.reason, /reductions and boundary/);
+  assert.match(reduced.reason, /final state counts/);
 });
 
 // Why: a finite pass records actual initial states, action edges, typed values and checked rule provenance.
