@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { writePlanFile } from "../lib/plan-file.mjs";
+import { writeComposition } from "../lib/composition.mjs";
 import { analyse, journeys, toTla } from "../lib/verify.mjs";
 import { runTlc } from "../lib/tlc-runner.mjs";
 import { diffAgainst } from "../lib/diff.mjs";
@@ -21,7 +22,7 @@ const HELP = `bowerbird: reproducible HTML/SVG/PNG/WebP architecture diagrams
                    [--embed-font [path]] [--scale 2] [--repo-root dir]
   With no --view (and no meta.view), render writes both <name>.flat.* and <name>.iso.*.
   --view flat or --view iso limits output to one view with <name>.* filenames.
-  bowerbird validate <file> [--strict]     schema + layout checks (strict: warnings fail)
+  bowerbird composition <file.bower.json> --out <file.html> [--input-sha <40-hex>]\n                                           one standalone light isometric composition map\n  bowerbird validate <file> [--strict]     schema + layout checks (strict: warnings fail)
   bowerbird sync <file> [--check] [--merge-ref origin/main] [--render ...]
                                            refresh node status from git evidence
   bowerbird plan --tasks <md> [--spec <md> ...] [--prs <json>] --out <file.bower.json> [--update <existing.bower.json>]
@@ -41,7 +42,7 @@ statecharts (nodes with shape initial/final/choice, edges with event/guard/actio
 `;
 
 const opts = {
-  out: { type: "string" }, view: { type: "string" }, formats: { type: "string" },
+  out: { type: "string" }, "input-sha": { type: "string" }, view: { type: "string" }, formats: { type: "string" },
   dark: { type: "string" }, light: { type: "string" }, "default-theme": { type: "string" }, "light-flat-fill": { type: "string" },
   "embed-font": { type: "string" }, scale: { type: "string" }, "repo-root": { type: "string" },
   strict: { type: "boolean" }, check: { type: "boolean" }, render: { type: "boolean" },
@@ -79,6 +80,11 @@ async function main(argv) {
   const clean = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
 
   switch (cmd) {
+    case "composition": {
+      if (positionals.length !== 2 || !values.out || !values.out.endsWith(".html")) throw new Error("composition: expected one input and --out <file.html>");
+      console.log(writeComposition(file, values.out, values["input-sha"]));
+      return 0;
+    }
     case "verify": {
       if (positionals.length !== 2) throw new Error("verify: expected exactly one .tla model");
       const controller = new AbortController();

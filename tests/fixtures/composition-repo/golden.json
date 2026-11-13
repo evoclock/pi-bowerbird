@@ -1,0 +1,7 @@
+{
+  "version": "0.2.0",
+  "sha": "0123456789abcdef0123456789abcdef01234567",
+  "groups": ["planning", "execution"],
+  "components": ["ship", "review", "test", "publish"],
+  "chain": ["review", "test", "publish"]
+}

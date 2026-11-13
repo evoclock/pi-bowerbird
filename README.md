@@ -85,6 +85,18 @@ bowerbird render docs/diagrams/system.bower.json --view iso --direction TD
 bowerbird snippets docs/diagrams/system.bower.json          # README and MARP embeds
 ```
 
+### Composition maps
+
+Add an opt-in `composition` object to a `*.bower.json` diagram. It has `groups` (`id`, `title`, explicit `status`), `components` (`id`, `title`, `type`, `group`, one-line `purpose`, explicit `status`), and `edges` (`from`, `to`, positive `step`). Status is `built`, `partial` or `planned`; it is never inferred. Component types are `skill`, `recipe`, `playbook`, and `workflow`. A workflow chains playbooks in step order; a recipe or playbook runs skills in step order. IDs are unique across groups and components. Legacy diagrams need no changes.
+
+```sh
+bowerbird composition docs/diagrams/flock.bower.json --out docs/diagrams/flock.html
+# Or for a detached input with no Git repository:
+bowerbird composition docs/diagrams/flock.bower.json --out docs/diagrams/flock.html --input-sha 0123456789abcdef0123456789abcdef01234567
+```
+
+This command writes one standalone light-mode HTML page with no iframe or network fetch. Group slabs open their own isometric maps; choosing a workflow shows its ordered playbook and skill chain and dims unrelated components. The HTML records the package version and the input repository's HEAD commit in both meta tags and `<html>` data attributes. An invalid or missing full commit SHA prevents output. This uses the same isometric layout and renderer as `render --view iso`.
+
 Statecharts:
 
 ```sh
