@@ -85,11 +85,12 @@ test("report validation downgrades missing or unreadable artifacts and unchecked
 // Why: known counterexamples and unexamined rules must remain distinct in a single report.
 test("violation report retains other rules as unchecked", { skip: !jar && "Set TLC_TEST_JAR to run real TLC tests" }, () => {
   const { dir, run } = verify("CounterFail.cfg");
+  assert.equal(run.exitCode, 1, run.reason);
   const evidence = JSON.parse(readFileSync(path.join(dir, "evidence.json"), "utf8"));
   evidence.rules.push({ id: "Other", kind: "invariant", status: "unchecked", provenance: { file: "tlc.stdout" } });
   writeFileSync(path.join(dir, "evidence.json"), JSON.stringify(evidence));
   const report = reportForRun(run, evidence, dir);
-  assert.equal(report.run.exitCode, 1);
+  assert.equal(report.run.exitCode, 1, report.run.reason);
   assert.match(report.text, /Other.*unchecked/);
   assert.match(report.text, /UnderTwo.*violated/);
 });
