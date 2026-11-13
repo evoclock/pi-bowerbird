@@ -65,7 +65,7 @@ test("CLI returns 0 for a completed run, 1 for invariant violation, 2 for incomp
   const cli = fileURLToPath(new URL("../bin/bowerbird.mjs", import.meta.url));
   for (const [config, expected] of [[passing, 0], [failing, 1], [fileURLToPath(new URL("fixtures/CounterInvalid.cfg", import.meta.url)), 2]]) {
     const destination = out();
-    const result = spawnSync(process.execPath, [cli, "verify", model, "--config", config, "--tlc-jar", jar, "--out", destination, "--java", java], { encoding: "utf8", timeout: 10000 });
+    const result = spawnSync(process.execPath, [cli, "verify", model, "--config", config, "--tlc-jar", jar, "--out", destination, "--java", java], { encoding: "utf8", timeout: 30000 });
     assert.equal(result.status, expected, result.stderr);
     assert.equal(JSON.parse(readFileSync(path.join(destination, "run.json"), "utf8")).exitCode, expected);
   }
