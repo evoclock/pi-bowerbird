@@ -46,6 +46,26 @@ Rules that keep layouts clean:
 - Categories are palette names (`sage rust peach mustard slate mauve teal olive`) and denote **kind**, never readiness. Status is separate.
 - `status` is `implemented | partial | planned`. With `evidence.paths`, `sync` derives it from git; do not guess.
 
+## Planned-work diagrams without a model
+
+For a tracker hook, read its task ledger and optional specs and PR snapshot from files. Call the file API directly from Node 22+; no model call or network access occurs:
+
+```js
+import { writePlanFile } from "@evoclock/pi-bowerbird/lib/plan-file.mjs";
+
+const file = "docs/diagrams/work.bower.json";
+const result = writePlanFile({
+  tasksPath: "TASKS.md",
+  specPaths: ["docs/spec.md"],
+  prsPath: "pr-list.json", // JSON array from gh pr list --json number,headRefName,state,url
+  outPath: file,
+  updatePath: file, // omit on first creation; use on every later run
+});
+// result.changed is false and the file is byte-identical when the plan is unchanged.
+```
+
+For the first run, omit `updatePath` and use a new `outPath`. For later runs, supply the same path as `outPath` and `updatePath`; only imported task nodes and dependencies change. The command equivalent is `bowerbird plan --tasks TASKS.md --spec docs/spec.md --prs pr-list.json --out docs/diagrams/work.bower.json --update docs/diagrams/work.bower.json`. Omit `--update` on first creation. Task headings or tables with IDs and status are required; unknown free-form prose is not inferred. Do not turn a file tree into a plan. Source documents are read-only, and differing existing output requires explicit update.
+
 ## Statecharts
 
 Set `meta.kind: "statechart"`. Use `shape: "initial" | "final" | "choice"` for pseudo-states (no title needed on initial) and `shape: "state"` for states. Transitions use `event`, `guard`, and `action` fields instead of `label`. Use `gap: [180, 60]` so transition labels fit.

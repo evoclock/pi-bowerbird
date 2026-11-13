@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
-import { planDiagram } from "../lib/plan.mjs";
-import { updatePlan } from "../lib/plan-update.mjs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { writePlanFile } from "../lib/plan-file.mjs";
 import { analyse, journeys, toTla } from "../lib/verify.mjs";
 import { diffAgainst } from "../lib/diff.mjs";
 import path from "node:path";
@@ -77,22 +76,9 @@ async function main(argv) {
   switch (cmd) {
     case "plan": {
       if (file || !values.tasks || (!values.out && !values.update)) throw new Error("plan: expected --tasks <md> --out <file.bower.json> (no positional file)");
-      const destination = values.out ?? values.update;
-      const identity = (p) => existsSync(p) ? realpathSync(p) : path.resolve(p);
-      if ([values.tasks, ...(values.spec ?? []), values.prs].filter(Boolean).some((p) => identity(p) === identity(destination))) throw new Error("plan: output cannot replace an input document");
-      const imported = planDiagram({
-        tasks: readFileSync(values.tasks, "utf8"),
-        specs: (values.spec ?? []).map((p) => readFileSync(p, "utf8")),
-        prs: values.prs ? JSON.parse(readFileSync(values.prs, "utf8")) : [],
-        title: values.title ?? "Planned work",
-      });
-      const current = values.update ? readFileSync(values.update, "utf8") : null;
-      const { diagram, changed } = current ? updatePlan(JSON.parse(current), imported) : { diagram: imported, changed: true };
-      const output = current && !changed ? current : JSON.stringify(diagram, null, 2) + "\n";
-      if (existsSync(destination) && readFileSync(destination, "utf8") !== output && (!values.update || identity(destination) !== identity(values.update))) throw new Error(`plan: refusing to overwrite differing output ${destination}`);
-      if (!existsSync(destination)) writeFileSync(destination, output, { flag: "wx" });
-      else if (readFileSync(destination, "utf8") !== output) writeFileSync(destination, output);
-      console.log(`${changed ? "wrote" : "unchanged"} ${destination}`);
+      const result = writePlanFile({ tasksPath: values.tasks, specPaths: values.spec ?? [], prsPath: values.prs,
+        outPath: values.out, updatePath: values.update, title: values.title });
+      console.log(`${result.changed ? "wrote" : "unchanged"} ${result.path}`);
       return 0;
     }
     case "render": {
