@@ -8,7 +8,7 @@ const model = fileURLToPath(new URL("fixtures/Counter.tla", import.meta.url));
 const config = fileURLToPath(new URL("fixtures/Counter.cfg", import.meta.url));
 const java = (version) => (_command, args, options) => {
   assert.deepEqual(args, ["-version"]);
-  assert.equal(options.timeout, 5000);
+  assert.equal(options.timeout, 15000);
   return { status: 0, stderr: `openjdk version "${version}"` };
 };
 
