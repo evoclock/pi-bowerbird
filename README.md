@@ -93,13 +93,14 @@ bowerbird journeys examples/proposal-to-merge.bower.json   # Given/When/Then pat
 bowerbird tla examples/proposal-to-merge.bower.json        # abstract control-flow export, not a TLC check
 ```
 
-The first TLA+-first verification unit accepts independently authored `.tla` and `.cfg` inputs:
+The TLA+-first runner accepts independently authored `.tla` and `.cfg` inputs. Obtain the official [TLC 1.7.4 `tla2tools.jar`](https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar) explicitly, then supply its path. Its required SHA-256 is `936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88`; a different jar is rejected. Nothing downloads automatically. Java 17+ is required (`--java` selects an executable).
 
 ```sh
-bowerbird verify tests/fixtures/Counter.tla --config tests/fixtures/Counter.cfg
+bowerbird verify tests/fixtures/Counter.tla --config tests/fixtures/Counter.cfg \
+  --tlc-jar /path/to/tla2tools.jar --out verification/counter
 ```
 
-This command **only preflights inputs and Java 17+** (use `--java` to select an executable). It does not invoke TLC, check rules, produce a chart, or report a model verdict yet. It always exits 2 (incomplete), including when prerequisites are ready. The `tla` exporter and graph checks are likewise not model verification. A future completed finite model check would support only its specific model/config and assumptions, not correctness of the implementation.
+The output directory must be new. It contains original `tlc.stdout`, `tlc.stderr`, TLC metadata, and `run.json` with source/config hashes, exact invocation, tool pin, resource bounds and raw outcome. TLC runs with one worker, a 256 MiB Java heap, an eight MiB combined log budget, a 64 MiB TLC metadata budget and a 60-second default timeout (set `--timeout-ms` from 100 to 600000). SIGINT/SIGTERM cancels the child; timeouts and cancellation exit 2. Exit 0 requires TLC's completed/no-error marker, 1 requires its invariant-violation marker, and 2 means error or incomplete. Other TLC exit codes, including other kinds of violations, stay incomplete until typed evidence support lands. These are *raw runner outcomes*, not per-rule verdicts or visualised evidence. An incomplete check is never passed. Even a completed finite check supports only its specific model/config and assumptions, never implementation correctness. `tla` export and graph checks are not model verification.
 
 Keeping a map current:
 

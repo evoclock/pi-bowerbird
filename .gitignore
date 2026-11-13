@@ -3,3 +3,4 @@ node_modules/
 *.src.png
 .DS_Store
 deprecated/
+.tlc-test-*/
