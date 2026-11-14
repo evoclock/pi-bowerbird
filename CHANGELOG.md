@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit disclosure of reductions, exploration boundaries, and chart omissions ([#31](https://github.com/evoclock/pi-bowerbird/pull/31)).
 - Opt-in trusted executable view mappings give display cards separate identities from concrete TLC fingerprints, retain every aggregate arrow and witness path, and distinguish sourced `breaks` from mixed-membership `mayBreak` marks ([#35](https://github.com/evoclock/pi-bowerbird/pull/35)).
 - Standalone isometric composition maps with version and input-SHA provenance markers ([#32](https://github.com/evoclock/pi-bowerbird/pull/32)); composition schema documentation and the `validate` guard ([#32](https://github.com/evoclock/pi-bowerbird/pull/32)); flat-to-composition migration guide ([#33](https://github.com/evoclock/pi-bowerbird/pull/33)).
+- Composition maps now produce ordinary linked overview and group diagrams plus standalone click-through flat and isometric HTML; the older single-file custom composition page is deprecated. Use `--out <dir>` ([#36](https://github.com/evoclock/pi-bowerbird/pull/36)).
+- Optional trusted region mappings preserve observed joint states and parallel replay arrows without inventing independent execution or implementation defects ([#37](https://github.com/evoclock/pi-bowerbird/pull/37)).
 
 ## [0.2.0] - 2026-11-12
 

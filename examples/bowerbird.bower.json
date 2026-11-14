@@ -81,6 +81,32 @@
       "details": "Not built yet: a workflow that renders every `*.bower.json` on push and publishes the HTML to GitHub Pages."
     }
   ],
+  "composition": {
+    "groups": [
+      { "id": "author", "title": "Author", "category": "sage", "status": "built" },
+      { "id": "engine", "title": "Engine", "category": "slate", "status": "partial" },
+      { "id": "render", "title": "Render", "category": "peach", "status": "partial" }
+    ],
+    "components": [
+      { "id": "agent", "group": "author", "category": "sage", "title": "Agent authoring", "type": "skill", "status": "built", "purpose": "Teach agents to author diagrams" },
+      { "id": "source", "group": "author", "category": "sage", "title": "Diagram source", "type": "skill", "status": "built", "purpose": "Store the authored diagram" },
+      { "id": "model", "group": "engine", "category": "slate", "title": "Model + validate", "type": "playbook", "status": "built", "purpose": "Validate diagram input" },
+      { "id": "layout", "group": "engine", "category": "slate", "title": "Route + place", "type": "skill", "status": "built", "purpose": "Position slabs and route edges" },
+      { "id": "status", "group": "engine", "category": "mauve", "title": "Status sync", "type": "skill", "status": "partial", "purpose": "Sync readiness from Git evidence" },
+      { "id": "html", "group": "render", "category": "peach", "title": "Interactive HTML", "type": "playbook", "status": "built", "purpose": "Make the interactive map" },
+      { "id": "svg", "group": "render", "category": "peach", "title": "Flat + iso SVG", "type": "skill", "status": "built", "purpose": "Paint theme-aware vector views" },
+      { "id": "raster", "group": "render", "category": "mustard", "title": "PNG + WebP", "type": "skill", "status": "built", "purpose": "Export raster images" },
+      { "id": "pages", "group": "render", "category": "mustard", "title": "Pages publish", "type": "workflow", "status": "planned", "purpose": "Publish diagrams from CI" }
+    ],
+    "edges": [
+      { "from": "model", "to": "layout", "step": 1 },
+      { "from": "model", "to": "status", "step": 2 },
+      { "from": "html", "to": "svg", "step": 1 },
+      { "from": "html", "to": "raster", "step": 2 },
+      { "from": "pages", "to": "model", "step": 1 },
+      { "from": "pages", "to": "html", "step": 2 }
+    ]
+  },
   "edges": [
     { "from": "agent", "to": "source", "label": "writes", "traces": ["render"] },
     { "from": "source", "to": "model", "label": "parse", "traces": ["render", "sync"] },
