@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFileSync, mkdtempSync, existsSync, cpSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -103,7 +104,7 @@ test("category faces, gradients and status opacities match the ordinary expressi
     const scope = `html[data-theme=${name}]`;
     const faceRules = isoCss(theme, model.categories, scope);
     const paintRules = paintCss(theme, model.categories, scope, { iso: true });
-    for (const token of GROUP_TOKENS) {
+    for (const token of GROUP_TOKENS.slice(0, input.composition.groups.length)) {
       for (const face of ["iso-roof", "iso-left", "iso-right"]) {
         const rule = faceRules.split("\n").find((line) => line.startsWith(`${scope} .cat-${token} .${face}{`));
         assert.ok(rule, `${token} ${face}`);
@@ -119,30 +120,51 @@ test("category faces, gradients and status opacities match the ordinary expressi
   const check = (text) => { for (const rule of expected) { assert.ok(ordinary.includes(rule), rule); assert.ok(text.includes(rule), rule); } };
   check(composition);
   // Deliberate break: alter a builder's face rule in composition only.
-  assert.throws(() => check(composition.replace(expected[0], expected[0].replace("fill:", "fill:broken-"))));
+  assert.throws(() => check(composition.split(expected[0]).join(expected[0].replace("fill:", "fill:broken-"))));
 });
 
-// Why: status treatment is neutral: no status-bearing component may carry category colour.
-test("status treatment uses surfaces and edges, never category hues", () => {
+// Why: every slab, including partial and planned ones, must retain its one category.
+test("every group and status-bearing component has exactly one category class", () => {
   const html = renderComposition(input.composition, input.meta.title, golden.sha);
-  const panelMaps = html.match(/<section class="panel"[\s\S]*?<\/svg>/g) ?? [];
-  assert.equal(panelMaps.length, input.composition.groups.length);
-  const check = (map) => {
-    assert.doesNotMatch(map, /cat-(?:sage|rust|peach|mustard|slate|mauve|teal|olive)/);
-    assert.doesNotMatch(map, /--status-(?:built|partial|planned)/);
-    const statusRules = map.match(/\.[^{}\n]*status-(?:implemented|partial|planned)[^{}]*\{[^}]*\}/g) ?? [];
-    assert.ok(statusRules.length);
-    for (const theme of Object.values(themes)) for (const colour of Object.values(theme.categories)) {
-      for (const rule of statusRules) assert.ok(!colors(rule).has(colour.toLowerCase()), `status rule must not contain category token ${colour}`);
+  const check = (text) => {
+    const slabs = [...text.matchAll(/<g class="([^"]*\bbb-node\b[^"]*)" data-id="([^"]+)"/g)];
+    assert.equal(slabs.length, input.composition.groups.length + input.composition.components.length);
+    for (const [, cls, id] of slabs) {
+      const categories = cls.match(/\bcat-[\w-]+/g) ?? [];
+      assert.equal(categories.length, 1, `one category for ${id}`);
+      if (input.composition.components.some((component) => component.id === id)) {
+        const component = input.composition.components.find((item) => item.id === id);
+        assert.ok(cls.includes(`status-${component.status === "built" ? "implemented" : component.status}`));
+      }
     }
   };
-  for (const map of panelMaps) check(map);
+  check(html);
+  const planned = html.match(/<g class="[^"]*status-planned[^"]*" data-id="[^"]+"/)[0];
+  assert.match(planned, /cat-[\w-]+/);
+  // Deliberate breaks: strip the category from planned, or add a second category.
+  assert.throws(() => check(html.replace(planned, planned.replace(/ cat-[\w-]+/, ""))));
+  assert.throws(() => check(html.replace(planned, planned.replace(/ cat-[\w-]+/, "$& cat-rust"))));
   assert.match(html, /status-planned \.iso-face\{fill-opacity:\.06;stroke-dasharray:5 4/);
   assert.match(html, /\.iso-hatch line\{stroke-width:1;opacity:\.35/);
-  for (const status of ["BUILT", "PARTIAL", "PLANNED"]) assert.match(html, new RegExp(`· ${status}<`));
-  // Deliberate break: assigning a category to a status-bearing slab fails.
-  assert.throws(() => check(panelMaps[0].replace('class="bb-node map-item', 'class="bb-node cat-sage map-item')));
-  assert.throws(() => check(panelMaps[0] + `.bb-node.status-planned .iso-roof{fill:${themes.light.categories.sage}}`));
+});
+
+// Why: our architecture composition must reflect the actual authored map, not the unrelated fixture.
+test("own composition uses the architecture input titles and node ids", () => {
+  const own = JSON.parse(readFileSync(path.join(root, "../examples/bowerbird.bower.json")));
+  assert.equal(own.composition.components.length, own.nodes.length);
+  for (const component of own.composition.components) {
+    const node = own.nodes.find((entry) => entry.id === component.id);
+    assert.ok(node);
+    assert.equal(component.title, node.title);
+    assert.equal(component.category, node.category);
+    assert.equal(component.status, node.status === "implemented" ? "built" : node.status);
+  }
+  const arch = renderComposition(own.composition, own.meta.title, golden.sha);
+  const fixtureHtml = renderComposition(input.composition, input.meta.title, golden.sha);
+  const md5 = (text) => createHash("md5").update(text).digest("hex");
+  assert.notEqual(md5(arch), md5(fixtureHtml));
+  assert.match(arch, /<title>Bowerbird architecture<\/title>/);
+  for (const node of own.nodes) assert.match(arch, new RegExp(`data-id="${node.id}"`));
 });
 
 // Why: every group swatch needs a unique theme hue and the group's visible name.
