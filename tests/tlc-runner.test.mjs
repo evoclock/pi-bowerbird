@@ -24,6 +24,10 @@ test("pinned TLC runs a passing handwritten model with recorded bounds and sourc
   assert.equal(result.tool.sha256, TLC_SHA256);
   assert.equal(result.inputs.model.sha256.length, 64);
   assert.deepEqual(result.command.args.slice(-3), ["-config", passing, model]);
+  // Why: concurrent TLC processes must not extract standard modules into the shared JVM temp directory.
+  const tempArg = `-Djava.io.tmpdir=${path.join(destination, "tlc-meta", "java-tmp")}`;
+  assert.ok(result.command.args.includes(tempArg));
+  assert.ok(existsSync(path.join(destination, "tlc-meta", "java-tmp")));
   assert.match(readFileSync(path.join(destination, "tlc.stdout"), "utf8"), /@!@!@STARTMSG 2193:0/);
 });
 

@@ -5,10 +5,21 @@ All notable changes to `@evoclock/pi-bowerbird` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [0.3.0] - 2026-11-14
 
-### Deprecated
-- The standalone composition HTML page and its custom styling are deprecated. Composition now writes linked overview and group diagrams through the package's ordinary render path. Use `--out <dir>` instead of `--out <file.html>`.
+### Added
+- Planned-work importer for task ledgers ([#17](https://github.com/evoclock/pi-bowerbird/pull/17)), incremental updates that preserve source documents ([#20](https://github.com/evoclock/pi-bowerbird/pull/20)), and a file API for deterministic hooks ([#21](https://github.com/evoclock/pi-bowerbird/pull/21)).
+- Fail-closed TLA+/TLC input and Java preflight ([#22](https://github.com/evoclock/pi-bowerbird/pull/22)); pinned TLC runner with bounded raw evidence ([#23](https://github.com/evoclock/pi-bowerbird/pull/23)).
+- Typed TLC exploration evidence ([#25](https://github.com/evoclock/pi-bowerbird/pull/25)) and projection of finite outcomes to flat evidence charts ([#26](https://github.com/evoclock/pi-bowerbird/pull/26)).
+- Finite outcome report and CLI ([#27](https://github.com/evoclock/pi-bowerbird/pull/27)), separate multi-rule diagnostics ([#28](https://github.com/evoclock/pi-bowerbird/pull/28)), and temporal and deadlock witnesses ([#29](https://github.com/evoclock/pi-bowerbird/pull/29)).
+- Explicit disclosure of reductions, exploration boundaries, and chart omissions ([#31](https://github.com/evoclock/pi-bowerbird/pull/31)).
+- Opt-in trusted executable view mappings give display cards separate identities from concrete TLC fingerprints, retain every aggregate arrow and witness path, and distinguish sourced `breaks` from mixed-membership `mayBreak` marks ([#35](https://github.com/evoclock/pi-bowerbird/pull/35)).
+- Standalone isometric composition maps with version and input-SHA provenance markers ([#32](https://github.com/evoclock/pi-bowerbird/pull/32)); composition schema documentation and the `validate` guard ([#32](https://github.com/evoclock/pi-bowerbird/pull/32)); flat-to-composition migration guide ([#33](https://github.com/evoclock/pi-bowerbird/pull/33)).
+- Composition maps now produce ordinary linked overview and group diagrams plus standalone click-through flat and isometric HTML; the older single-file custom composition page is deprecated. Use `--out <dir>` ([#36](https://github.com/evoclock/pi-bowerbird/pull/36)). Standalone composition opens in light mode with filled category planes while keeping both theme and flat fill controls.
+- Optional trusted region mappings preserve observed joint states and parallel replay arrows without inventing independent execution or implementation defects ([#37](https://github.com/evoclock/pi-bowerbird/pull/37)).
+
+### Fixed
+- Concurrent TLC checks no longer race over extracted standard modules in the shared JVM temporary directory, and metadata polling tolerates files that TLC removes during a snapshot. Incomplete or invalid checks still fail closed.
 
 ## [0.2.0] - 2026-11-12
 
@@ -43,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Theme-aware isometric architecture example and Pi npm package install docs (see [v0.1.1 release](https://github.com/evoclock/pi-bowerbird/releases/tag/v0.1.1)).
 
+[0.3.0]: https://github.com/evoclock/pi-bowerbird/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/evoclock/pi-bowerbird/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/evoclock/pi-bowerbird/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/evoclock/pi-bowerbird/releases/tag/v0.1.1
