@@ -5,7 +5,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { existsSync, mkdtempSync, mkdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdtempSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "../lib/export.mjs";
@@ -126,6 +126,8 @@ test("standalone composition switches groups and returns in one browser document
   const out = mkdtempSync(path.join(scratch, "composition-browser-"));
   const file = path.join(repo, "examples/bowerbird.bower.json");
   await writeComposition(file, out, "0123456789abcdef0123456789abcdef01234567");
+  const attached = mkdtempSync(path.join(scratch, "composition-attached-"));
+  for (const view of ["flat", "iso"]) copyFileSync(path.join(out, `composition.${view}.html`), path.join(attached, `composition.${view}.html`));
   await withBrowser(async (send) => {
     const evalJs = async (expression) => {
       const result = await send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true });
@@ -133,7 +135,7 @@ test("standalone composition switches groups and returns in one browser document
       return result.result.result.value;
     };
     for (const view of ["flat", "iso"]) {
-      await send("Page.navigate", { url: `file://${path.join(out, `composition.${view}.html`)}` });
+      await send("Page.navigate", { url: `file://${path.join(attached, `composition.${view}.html`)}` });
       await sleep(1100);
       assert.equal(await evalJs(`document.querySelector('#composition-frame').hidden`), true);
       for (const [group, member] of [["author", "agent"], ["engine", "model"], ["render", "html"]]) {
