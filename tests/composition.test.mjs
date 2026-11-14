@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { normalise, BowerError } from "../lib/model.mjs";
-import { renderComposition, STATUS_TOKENS, GROUP_TOKENS } from "../lib/composition.mjs";
+import { renderComposition, GROUP_TOKENS } from "../lib/composition.mjs";
 import { loadTheme } from "../lib/themes.mjs";
 import { layout } from "../lib/layout.mjs";
 import { isoLayout, renderIsoSvg } from "../lib/render-iso.mjs";
@@ -28,6 +28,7 @@ test("rejects invalid status, group, endpoint, type and step", () => {
     ["composition-endpoint", (c) => { c.edges[0].to = "missing"; }],
     ["composition-type", (c) => { c.edges[0].to = "test"; }],
     ["composition-step", (c) => { c.edges[1].step = 1; }],
+    ["composition-group-palette", (c) => { for (let i = 0; i < 7; i++) c.groups.push({ id: `extra-${i}`, title: `Extra ${i}`, status: "built" }); }],
   ];
   for (const [code, mutate] of cases) {
     const doc = structuredClone(input); mutate(doc.composition);
@@ -87,24 +88,47 @@ test("all composition colours come from existing theme and iso paint", () => {
   assert.throws(() => check(html + '<path fill="#' + '123abc"/>'));
 });
 
-// Why: distinct status and group hues, visible legend and non-colour cues must remain stable.
-test("theme category names determine status, group and legend colours", () => {
+// Why: status treatment is neutral: no status-bearing component may carry category colour.
+test("status treatment uses surfaces and edges, never category hues", () => {
+  const html = renderComposition(input.composition, input.meta.title, golden.sha);
+  const panelMaps = html.match(/<section class="panel"[\s\S]*?<\/svg>/g) ?? [];
+  assert.equal(panelMaps.length, input.composition.groups.length);
+  const check = (map) => {
+    assert.doesNotMatch(map, /cat-(?:sage|rust|peach|mustard|slate|mauve|teal|olive)/);
+    assert.doesNotMatch(map, /--status-(?:built|partial|planned)/);
+    for (const theme of Object.values(themes)) for (const colour of Object.values(theme.categories)) {
+      assert.ok(!colors(map).has(colour.toLowerCase()), `status map must not contain category token ${colour}`);
+    }
+  };
+  for (const map of panelMaps) check(map);
+  assert.match(html, /status-planned \.iso-face\{fill:none;stroke-dasharray:4 4/);
+  assert.match(html, /status-partial \.iso-hatch line\{stroke:/);
+  for (const status of ["BUILT", "PARTIAL", "PLANNED"]) assert.match(html, new RegExp(`· ${status}<`));
+  // Deliberate break: assigning a category to a status-bearing slab fails.
+  assert.throws(() => check(panelMaps[0].replace('class="bb-node map-item', 'class="bb-node cat-sage map-item')));
+});
+
+// Why: every group swatch needs a unique theme hue and the group's visible name.
+test("group colours are unique, labelled and deterministic", () => {
   const html = renderComposition(input.composition, input.meta.title, golden.sha);
   assert.equal(html, renderComposition(input.composition, input.meta.title, golden.sha));
-  assert.equal(new Set(Object.values(STATUS_TOKENS)).size, 3);
+  assert.equal(new Set(GROUP_TOKENS).size, 8);
   assert.match(html, /aria-label="Map colour legend"/);
-  assert.match(html, /status-planned \.iso-face\{fill:/);
-  assert.match(html, /status-partial \.iso-hatch line\{stroke:/);
-  for (const [status, token] of Object.entries(STATUS_TOKENS)) {
-    assert.ok(html.includes(`--status-${status}:${themes.light.categories[token]}`));
-    assert.ok(html.includes(`--status-${status}:${themes.dark.categories[token]}`));
-    assert.ok(html.includes(`cat-${token} status-${status === "built" ? "implemented" : status}`));
-  }
-  for (const [i, group] of input.composition.groups.entries()) {
-    assert.ok(html.includes(`data-id=${JSON.stringify(group.id)}] .iso-roof{fill:${themes.light.categories[GROUP_TOKENS[i]]}`));
-    assert.ok(html.includes(`data-id=${JSON.stringify(group.id)}] .iso-roof{fill:${themes.dark.categories[GROUP_TOKENS[i]]}`));
-  }
-  assert.throws(() => assert.match(html.replace('aria-label="Map colour legend"', ''), /aria-label="Map colour legend"/));
+  const legend = html.match(/<aside class="composition-legend"[\s\S]*?<\/aside>/)?.[0] ?? "";
+  const check = (text) => {
+    for (const [i, group] of input.composition.groups.entries()) {
+      assert.ok(text.includes(`background:var(--group-${i})`));
+      assert.ok(text.includes(`>${group.title}</span>`), `missing group label ${group.title}`);
+      assert.ok(html.includes(`cat-${GROUP_TOKENS[i]}`));
+      for (const theme of Object.values(themes)) assert.ok(html.includes(`--group-${i}:${theme.categories[GROUP_TOKENS[i]]}`));
+    }
+  };
+  check(legend);
+  assert.throws(() => check(legend.replace('>Planning</span>', '></span>')));
+  assert.match(legend, /<strong>Status<\/strong>/);
+  assert.match(legend, /status-built/);
+  assert.match(legend, /status-partial/);
+  assert.match(legend, /status-planned/);
 });
 
 // Why: token-based page and tag text must pass WCAG AA in light and dark.
