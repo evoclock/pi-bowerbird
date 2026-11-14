@@ -53,7 +53,14 @@ Set `meta.style` in the diagram, or pass `--style expressive` to `render`. Both 
 In pi:
 
 ```sh
-pi install npm:@evoclock/pi-bowerbird
+pi install npm:@evoclock/pi-bowerbird@0.3.0
+```
+
+For a shell install from npm, or from the GitHub release tarball after v0.3.0 is published:
+
+```sh
+sfw npm install @evoclock/pi-bowerbird@0.3.0
+sfw npm install https://github.com/evoclock/pi-bowerbird/releases/download/v0.3.0/evoclock-pi-bowerbird-0.3.0.tgz
 ```
 
 PNG and WebP export use `rsvg-convert` and `cwebp`:
@@ -89,13 +96,28 @@ bowerbird snippets docs/diagrams/system.bower.json          # README and MARP em
 
 Add an opt-in `composition` object to a `*.bower.json` diagram. It has `groups` (`id`, `title`, explicit `status`), `components` (`id`, `title`, `type`, `group`, one-line `purpose`, explicit `status`), and `edges` (`from`, `to`, positive `step`). Status is `built`, `partial` or `planned`; it is never inferred. Component types are `skill`, `recipe`, `playbook`, and `workflow`. A workflow chains playbooks in step order; a recipe or playbook runs skills in step order. IDs are unique across groups and components. Legacy diagrams need no changes.
 
+Run the schema and layout guard before rendering. This one-command recipe validates and writes the standalone map:
+
 ```sh
-bowerbird composition docs/diagrams/flock.bower.json --out docs/diagrams/flock.html
+bowerbird validate docs/diagrams/flock.bower.json && bowerbird composition docs/diagrams/flock.bower.json --out docs/diagrams/flock.html
 # Or for a detached input with no Git repository:
 bowerbird composition docs/diagrams/flock.bower.json --out docs/diagrams/flock.html --input-sha 0123456789abcdef0123456789abcdef01234567
 ```
 
-This command writes one standalone light-mode HTML page with no iframe or network fetch. Group slabs open their own isometric maps; choosing a workflow shows its ordered playbook and skill chain and dims unrelated components. The HTML records the package version and the input repository's HEAD commit in both meta tags and `<html>` data attributes. An invalid or missing full commit SHA prevents output. This uses the same isometric layout and renderer as `render --view iso`.
+This command writes one standalone light-mode HTML page with no iframe or network fetch. Group slabs open their own isometric maps; choosing a workflow shows its ordered playbook and skill chain and dims unrelated components. The HTML records `<meta name="generator" content="bowerbird 0.3.0">` and `<meta name="bowerbird-input-sha" content="<40-hex>">`, plus `data-bowerbird-version` and `data-bowerbird-input-sha` on `<html>`. The version comes from package.json; the input SHA comes from the input file's Git repository HEAD or `--input-sha`. An invalid or missing full commit SHA prevents output. This uses the same isometric layout and renderer as `render --view iso`. `bowerbird validate <file> --strict` also fails on layout warnings. See the [composition schema and flat-to-composition how-to](docs/composition-schema.md): keep existing flat nodes and edges, add explicit groups, components, and ordered edges under `composition`, validate, then render. Flat diagrams remain usable without composition.
+
+### Planned-work importer
+
+Import a task ledger into a diagram; optionally add specifications and PR data, then update the existing diagram incrementally without overwriting the source documents:
+
+```sh
+bowerbird plan --tasks docs/TASKS.md --out docs/planned.bower.json
+bowerbird plan --tasks docs/TASKS.md --update docs/planned.bower.json
+```
+
+The `writePlanFile` API in `lib/plan-file.mjs` supports deterministic integrations. Use `--spec <md>` (repeatable) and `--prs <json>` when those sources exist.
+
+### TLC tools and statecharts
 
 Statecharts:
 

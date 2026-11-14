@@ -11,6 +11,7 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const fixture = path.join(root, "fixtures/composition-repo");
 const input = JSON.parse(readFileSync(path.join(fixture, "map.bower.json")));
 const golden = JSON.parse(readFileSync(path.join(fixture, "golden.json")));
+const { version } = JSON.parse(readFileSync(path.join(root, "../package.json")));
 const cli = path.join(root, "../bin/bowerbird.mjs");
 const run = (...args) => spawnSync(process.execPath, [cli, ...args], { encoding: "utf8" });
 
@@ -42,9 +43,9 @@ test("single-file golden has exact markers and group and component slabs", () =>
     assert.equal(html, readFileSync(path.join(fixture, "golden.html"), "utf8"), "checked-in CLI golden output");
     assert.equal((html.match(/<meta name="generator"/g) ?? []).length, 1);
     assert.equal((html.match(/<meta name="bowerbird-input-sha"/g) ?? []).length, 1);
-    assert.match(html, new RegExp(`<meta name="generator" content="bowerbird ${golden.version}">`));
+    assert.match(html, new RegExp(`<meta name="generator" content="bowerbird ${version}">`));
     assert.match(html, new RegExp(`<meta name="bowerbird-input-sha" content="${golden.sha}">`));
-    assert.match(html, new RegExp(`<html[^>]+data-bowerbird-version="${golden.version}"[^>]+data-bowerbird-input-sha="${golden.sha}"`));
+    assert.match(html, new RegExp(`<html[^>]+data-bowerbird-version="${version}"[^>]+data-bowerbird-input-sha="${golden.sha}"`));
     assert.doesNotMatch(html, /<iframe|<link |\bfetch\s*\(/);
     for (const id of golden.groups) assert.match(html, new RegExp(`data-id="${id}"`));
     for (const id of golden.components) assert.match(html, new RegExp(`data-id="${id}"`));
