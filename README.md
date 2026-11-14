@@ -46,7 +46,15 @@ In the isometric view, status reads as construction: built is a solid block, par
 - **restrained** (default). Matte planes, fine lines, generous space, and soft pastel colour.
 - **expressive**. Glows, colour washes, shadows, and gradients.
 
-Set `meta.style` in the diagram, or pass `--style expressive` to `render`. Both themes share the chosen style. In restrained **flat light** diagrams, only the small indicator dots show category colours by default. Set `meta.lightFlatFill` to `"filled"` or pass `--light-flat-fill filled` to fill node cards with category colours; the flat HTML toolbar can switch between dots-only and filled. `--light-flat-fill dots` restores the default. Dark and isometric styling are unchanged. The former `categoryFillParity` option is no longer supported.
+Set `meta.style` in the diagram, or pass `--style expressive` to `render`. Both themes use the chosen style.
+
+For restrained **flat light** diagrams:
+
+- Only the small indicator dots show category colours by default.
+- Set `meta.lightFlatFill` to `"filled"` or pass `--light-flat-fill filled` to colour the node cards.
+- The flat HTML toolbar can switch between filled cards and dots. `--light-flat-fill dots` restores the default.
+
+Dark and isometric styling do not change. The old `categoryFillParity` option is no longer supported.
 
 ## Install
 
@@ -94,7 +102,14 @@ bowerbird snippets docs/diagrams/system.bower.json          # README and MARP em
 
 ### Composition maps
 
-Add an opt-in `composition` object to a `*.bower.json` diagram. It has `groups` (`id`, `title`, explicit `status`), `components` (`id`, `title`, `type`, `group`, one-line `purpose`, explicit `status`), and `edges` (`from`, `to`, positive `step`). Status is `built`, `partial` or `planned`; it is never inferred. Component types are `skill`, `recipe`, `playbook`, and `workflow`. A workflow chains playbooks in step order; a recipe or playbook runs skills in step order. IDs are unique across groups and components. Legacy diagrams need no changes.
+Add a `composition` object to a `*.bower.json` diagram to map how components fit together.
+
+- `groups` have an `id`, `title`, and explicit `status`.
+- `components` have an `id`, `title`, `type`, `group`, one-line `purpose`, and explicit `status`.
+- `edges` have `from`, `to`, and a positive `step` for ordering.
+- Status is `built`, `partial`, or `planned`. The tool never infers it.
+- Component types are `skill`, `recipe`, `playbook`, and `workflow`. Workflows order playbooks; recipes and playbooks order skills.
+- IDs must be unique across groups and components. Older diagrams need no changes.
 
 Use an authored diagram with matching zones, nodes, categories, and placement (see [the composition schema and flat-to-composition how-to](docs/composition-schema.md)). Validate and render into a directory:
 
@@ -104,7 +119,14 @@ bowerbird validate examples/bowerbird.bower.json && bowerbird composition exampl
 bowerbird composition examples/bowerbird.bower.json --out diagrams/composition --input-sha 0123456789abcdef0123456789abcdef01234567
 ```
 
-The directory contains ordinary linked `overview` and `group-*` flat and isometric diagrams, plus standalone `composition.flat.html` and `composition.iso.html` pages. The standalone pages embed the rendered groups and let you click a group to open it and return to the overview without a network request. They open in light mode with filled category planes on the overview and group views. The regular theme toggle still switches to dark and back; flat pages can switch between filled planes and dots. They use the regular renderer and controls ([#36](https://github.com/evoclock/pi-bowerbird/pull/36)). The old custom single-file composition page and `--out <file.html>` are deprecated. Each HTML page records the package version and the input SHA in `generator` and `bowerbird-input-sha` meta tags and `<html>` data attributes. A missing or invalid full SHA prevents output. `bowerbird validate <file> --strict` also fails on layout warnings. Legacy flat diagrams remain usable without composition.
+The output directory contains linked `overview` and `group-*` diagrams in flat and isometric views. It also contains standalone `composition.flat.html` and `composition.iso.html` pages.
+
+- Standalone pages embed the rendered groups. Click a group to open it, then return to the overview without a network request.
+- Pages start in light mode with filled category colours. The theme toggle switches to dark; flat pages can also switch between filled cards and dots.
+- Pages use the regular renderer and controls ([#36](https://github.com/evoclock/pi-bowerbird/pull/36)). The old custom single-file page and `--out <file.html>` are deprecated.
+- Each HTML page records the package version and input SHA in `generator` and `bowerbird-input-sha` meta tags and `<html>` data attributes. A missing or invalid full SHA prevents output.
+
+`bowerbird validate <file> --strict` fails on layout warnings. Older flat diagrams still work without composition.
 
 ### Planned-work importer
 
@@ -134,15 +156,126 @@ bowerbird verify tests/fixtures/Counter.tla --config tests/fixtures/Counter.cfg 
   --tlc-jar /path/to/tla2tools.jar --out verification/counter
 ```
 
-The output directory must be new. It contains `report.md` with the original verdict, per-rule checked/violated/unchecked results and provenance, assumptions, omissions, bounds, input/tool hashes, exact TLC invocation, witness (when available) and links to raw artifacts. It also contains original `tlc.stdout`, `tlc.stderr`, machine-readable `tlc.dot` when produced, TLC metadata, `evidence.json`, and `run.json` with source/config hashes, exact invocation, tool pin, resource bounds and raw outcome. TLC runs with one worker, a 256 MiB Java heap, an eight MiB combined log budget, a 64 MiB TLC metadata budget and a 60-second default timeout (set `--timeout-ms` from 100 to 600000). SIGINT/SIGTERM cancels the child; timeouts and cancellation exit 2. Exit 0 requires TLC's completed/no-error marker; 1 covers a parsed invariant, deadlock or single-property temporal violation; 2 means error or incomplete. Other TLC exit codes stay unchecked until their witnesses are supported. The typed evidence covers finite states, initial fingerprints, action-labelled steps, supported value types, invariant results and finite invariant witnesses linked to the original output. Unsupported value/graph syntax, missing evidence, ambiguous multiple temporal properties and malformed reduction declarations remain **unchecked** and exit 2, even when TLC returned a recognised code. `run.json` retains the raw TLC outcome separately. An early invariant or deadlock violation leaves exploration boundaries unknown; a completed state exploration (including a supported temporal violation) marks its observed graph explored only within its configured constraints. Supported concrete finite outcomes within the chart budget also produce `model.bower.json`, flat `model.html` and `model.svg` with one card per observed concrete state and one arrow per sourced model step, including self-loops. An initial state is labelled, not linked by an invented transition. Invariant witnesses carry rule-specific marks linked to `evidence.json`; values and provenance stay there in full. The chart budget is 500 states / 1500 steps. Larger completed checks omit the chart and keep a checked model verdict with exact omissions; larger violations show only the complete witness when it fits, and label every omitted state/step. A witness too large for the budget omits its chart but remains linked in typed evidence. A failed or unreadable projection is **incomplete** (exit 2), not a pass. `VIEW` and `SYMMETRY` create representative quotient identities, so they omit the concrete chart instead of showing false concrete transitions. Model-derived charts are not authored graph checks; `check` and `journeys` reject them. For a single supported liveness property, the graph and report retain TLC's explicit lasso back edge or implicit stuttering witness; these bounded model traces are not necessarily shortest and do not prove code behavior. A real deadlock has no enabled `Next` successor; the tool does not add stuttering to hide it. To represent an intended terminal, define a guarded self-loop only at that terminal in the model (as in `tests/fixtures/Terminal.tla`). An incomplete check is never passed. Unreadable or missing required report artifacts also exit 2; preflight failures (such as missing tools or invalid input paths) exit 2 before an output directory is created. The exact ordered TLC argv and working directory are in `report.md` and `run.json`; for a new check, invoke `bowerbird verify` with the recorded inputs and a **new** `--out` path. Even a completed finite check supports only its specific model/config and assumptions, never implementation correctness. `tla` export and graph checks are not model verification.
+#### What verify writes
 
-An optional `--trusted-view ./local-view.mjs` loads **executable JavaScript** into the verifier process with your user permissions, filesystem and network access. Use it only for code you authored or independently audited; never pass a downloaded or untrusted view. It is not sandboxed. The module exports `state(vars)` returning a nonempty display label and may export `step(action, from, to)` returning a nonempty action label. Arguments are typed evidence values, not plain JavaScript scalars. Equal state labels merge display cards, not concrete identities. Every observed concrete arrow remains an arrow, including parallel arrows and loops; witness paths remain marked. A card `breaks` a rule only if every member has sourced failing evidence; if only some members have such evidence, it `mayBreak`. Unknown members are not assumed to pass or fail. Concrete fingerprints, per-rule outcomes, and the original TLC evidence remain in `evidence.json`. The executable view path and hash appear in the report; its imports are not pinned by that hash. This is a **faithful abstraction of observed model states**, not an unrestricted model or implementation proof. The option does not reconstruct concrete states from TLC `VIEW` or `SYMMETRY` reductions. See [#35](https://github.com/evoclock/pi-bowerbird/pull/35) for this opt-in mapping. To apply a view you trust, add `--trusted-view ./local-view.mjs` to `bowerbird verify` and use a new output directory; do not run third-party view modules.
+Use a new `--out` directory for every check. `verify` never overwrites an existing one.
 
-For observed joint-state and parallel replay support ([#37](https://github.com/evoclock/pi-bowerbird/pull/37)), a trusted view may also export `regions(vars)` to return a nested object with at least two named top-level regions and string leaf values. Each call describes **one observed joint state**, not separate concurrently executing machines. The leaf paths must stay consistent across states. Different joint combinations never collapse into the same card even when `state(vars)` returns identical display labels. Each observed arrow carries its full source joint condition and changed region labels, with source and target identities in its details. The chart records no transition or execution order that TLC did not observe. Charts and reports state **model evidence; implementation defects require independent replay**. This verifier has no implementation replay contract: witnesses are explicitly **model-only** until independently reproduced against real code. See `skills/bowerbird/SKILL.md` for the author/check/project/render/explain workflow.
+- `report.md` gives the original result, each rule's result and source, assumptions, limits, omissions, and any failure path (witness). It links to the raw files.
+- `tlc.stdout` and `tlc.stderr` preserve TLC's original output. `tlc.dot` contains TLC's state graph when produced. TLC metadata is also saved.
+- `evidence.json` records typed states, initial-state identifiers, action-labelled steps, supported values, rule results, and supported finite witnesses. It links findings to TLC output.
+- `run.json` records source and config hashes, the tool hash, exact command and working directory, limits, and TLC's raw result separately from the final verdict.
 
-`CONSTRAINT` and `ACTION_CONSTRAINT` can exclude successors from TLC's DOT graph. Evidence reports those boundaries as partial, not terminal states; the exact number of excluded states is unknown. If TLC's witness evaluates an invariant at an excluded successor, the chart uses a clearly labelled witness-derived boundary ID, not an invented TLC fingerprint or graph edge. Deadlock checks at excluded boundary states are not claimed. `VIEW` and `SYMMETRY` retain TLC's reduced model/config verdict and raw representative graph, but omit the chart until concrete-to-representative mappings can be shown faithfully. These checks do not cover an unrestricted model or prove implementation correctness.
+To repeat a check, use the recorded inputs and command with a **new** `--out` path.
 
-If a supported invariant fails and other invariants remain unchecked, `verify` keeps the original model, config, raw verdict, witness and exit code intact. It writes separately labelled follow-on configs and runs under `diagnostics/`, omitting **only** invariants already found violated. `diagnostics.json` and the original report link each run's config, checked/violated/unchecked rules and raw evidence. These are distinct finite model/config verdicts, not a combined proof. Follow-ons use a byte-identical source copy so TLC can resolve the diagnostic configs; user-defined local modules may fail to resolve from that location, in which case the follow-on stays unchecked. A 100,000-distinct-state diagnostic limit is monitored during execution and validated against the final count; TLC has no native hard ceiling, so brief overshoot is possible. Diagnostic runs also share a 60-second (or configured) total time budget and stop after at most 16 passes. A stopped, over-bound or unreadable follow-on never becomes a pass. None of this proves implementation correctness.
+#### Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | TLC completed without a reported violation, and the checked evidence and required files agree. |
+| `1` | A supported, parsed model invariant, deadlock, or single-property temporal violation has a witness. |
+| `2` | Error or incomplete check, including cancellation, timeout, unreadable output, or unsupported evidence. |
+
+Other TLC results remain unchecked until the tool supports their witnesses. A recognised TLC code alone cannot make a check pass.
+
+Unsupported values or graph syntax, missing evidence, ambiguous multiple temporal properties, and malformed reduction declarations also exit `2`. Missing or unreadable required files do too.
+
+Input or tool checks can fail before the output directory is created. SIGINT or SIGTERM cancels the TLC child process.
+
+#### Limits
+
+`verify` runs TLC with these limits. MiB means 1,048,576 bytes.
+
+| Resource | Limit |
+|---|---|
+| Workers | `1` |
+| Java heap | `256 MiB` |
+| Combined stdout and stderr | `8 MiB` |
+| TLC graph file | `8 MiB` |
+| TLC metadata | `64 MiB` |
+| Timeout | `60,000 ms` by default; `--timeout-ms` accepts `100`–`600,000 ms` |
+| Chart | `500` states and `1,500` steps |
+
+#### What a pass does and doesn't prove
+
+A completed check covers only the specified model, config, assumptions, and checked rules. It does **not** prove that the implementation is correct.
+
+An early invariant or deadlock failure leaves the rest of the state graph unexplored. A completed exploration covers its observed graph only within the configured constraints.
+
+A supported temporal failure can occur after state exploration completes. Its witness shows a loop or repeated last state, not necessarily the shortest path.
+
+A deadlock means no `Next` step is enabled. The tool does not add a self-loop to hide one. For an intended terminal, define a guarded self-loop there, as in `tests/fixtures/Terminal.tla`.
+
+`bowerbird tla` exports an abstract model; `check` and `journeys` inspect authored diagrams. None of these commands verifies a model.
+
+#### Charts
+
+For a supported finite result within the chart limits, `verify` writes `model.bower.json`, flat `model.html`, and `model.svg`.
+
+- Each observed state gets a card. Each sourced model step gets an arrow, including self-loops.
+- Initial states get labels, not invented incoming arrows. Failure paths carry rule-specific marks linked to full values and sources in `evidence.json`.
+- If a completed graph exceeds the chart limit, the check can still pass. The report records the omitted chart and exact counts.
+- If a violation's graph exceeds the limit, the chart shows only its complete witness when that fits. It labels omitted states and steps.
+- If even the witness exceeds the limit, no chart is written. The witness remains in `evidence.json`.
+- If a required chart fails to render or cannot be read, the check is incomplete (`2`).
+
+These model-derived charts cannot be passed to `check` or `journeys` as authored diagrams.
+
+#### Trusted views
+
+**Security warning:** `--trusted-view` runs executable JavaScript with your user permissions. It can access your files and network. It is **not sandboxed**.
+
+Use only a module you wrote or independently audited. Never pass a downloaded or untrusted view.
+
+Add `--trusted-view ./local-view.mjs` to `bowerbird verify`, with a new output directory.
+
+- The module must export `state(vars)`, which returns a nonempty display label. It can export `step(action, from, to)` for a nonempty action label.
+- Arguments contain typed evidence values, not plain JavaScript numbers or strings.
+- Equal state labels merge display cards, not the original concrete states. Every observed arrow remains, including parallel arrows and loops. Witness paths stay marked.
+- A grouped card gets `breaks` only when every member has sourced failing evidence. It gets `mayBreak` when only some do. Unknown members are neither passes nor failures.
+- `evidence.json` keeps concrete state fingerprints (identifiers), rule results, and original TLC evidence.
+- The report records the view module's path and hash. That hash does **not** pin modules it imports.
+
+A view changes the display of observed model states. It cannot recover concrete states from TLC's `VIEW` or `SYMMETRY` reductions. See [#35](https://github.com/evoclock/pi-bowerbird/pull/35).
+
+#### Joint states
+
+A trusted view can export `regions(vars)` to label parts of one observed state. This does not model independently running machines.
+
+- Return a nested object with at least two named top-level regions and string values at its leaves.
+- Keep the same leaf paths across states. Different combinations cannot merge into one card, even if their `state(vars)` labels match.
+- Every observed arrow shows its source region values and changed labels. Its details retain source and target state identifiers.
+- The chart invents no transition or execution order. A model witness is **model-only** until independently replayed against real code.
+
+See [#37](https://github.com/evoclock/pi-bowerbird/pull/37) and `skills/bowerbird/SKILL.md` for the author/check/project/render/explain workflow.
+
+#### Constraints
+
+TLC's `CONSTRAINT` and `ACTION_CONSTRAINT` settings can exclude successor states from its DOT state graph.
+
+- Evidence marks these boundaries as partial, not terminal states. The number of excluded states is unknown.
+- If a failure path evaluates an invariant at an excluded successor, the chart labels that boundary with a witness-derived ID. Its sourced witness arrow is not a TLC DOT edge.
+- No deadlock check is claimed at that excluded state.
+
+`VIEW` and `SYMMETRY` group states into representatives. The tool retains TLC's reduced model/config verdict and raw representative graph, but omits the concrete chart.
+
+It cannot faithfully map each representative back to a concrete state or transition. These results cover only the configured, reduced model.
+
+#### Follow-on diagnostics
+
+When a supported invariant fails and others remain unchecked, `verify` can run separate checks for those remaining rules.
+
+- The original model, config, raw verdict, witness, and exit code stay intact.
+- New configs omit **only** invariants already found violated. Each pass has its own model/config result; the passes are not a combined proof.
+- `diagnostics/` holds the new configs and runs. `diagnostics.json` and the original report link each pass's rule results and raw evidence.
+- Each pass uses a byte-identical source copy so TLC can find its config. Custom local modules might not resolve from that copy; affected passes stay unchecked.
+
+| Diagnostic limit | Value |
+|---|---|
+| Distinct states per pass | `100,000` by default; monitored while running and checked against the final count |
+| Total time for follow-ons | `60,000 ms` by default, or the configured timeout, shared across passes |
+| Number of passes | At most `16` |
+
+TLC has no hard state ceiling, so a run can briefly exceed the state limit. Stopped, over-limit, or unreadable runs never get a passing verdict.
 
 Keeping a map current:
 
