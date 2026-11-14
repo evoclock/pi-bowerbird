@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -111,4 +111,58 @@ test("composition rejects a short input SHA", () => {
   const out = path.join(mkdtempSync(path.join(os.tmpdir(), "bb-composition-")), "invalid");
   assert.notEqual(run("composition", inputFile, "--out", out, "--input-sha", "short").status, 0);
   assert.equal(existsSync(out), false);
+});
+
+// Why: the version and SHA must survive the projection and reach every HTML page.
+test("composition exposes input SHA and package version on all pages", () => {
+  const out = mkdtempSync(path.join(os.tmpdir(), "bb-composition-"));
+  assert.equal(run("composition", inputFile, "--out", out, "--input-sha", sha).status, 0);
+  const version = JSON.parse(text(path.join(root, "package.json"))).version;
+  const verify = (html) => {
+    assert.match(html, new RegExp(`<meta name="generator" content="bowerbird ${version.replaceAll(".", "\\.")}">`));
+    assert.match(html, new RegExp(`<meta name="bowerbird-input-sha" content="${sha}">`));
+    assert.match(html, new RegExp(`<html [^>]*data-bowerbird-version="${version.replaceAll(".", "\\.")}"[^>]*data-bowerbird-input-sha="${sha}"`));
+  };
+  for (const name of ["overview", ...input.composition.groups.map((g) => `group-${g.id}`)]) {
+    assert.equal(JSON.parse(text(path.join(out, `${name}.bower.json`))).meta.inputSha, sha);
+    for (const view of ["flat", "iso"]) {
+      const html = text(path.join(out, `${name}.${view}.html`));
+      verify(html);
+      // Deliberate break: even one altered SHA field fails provenance parity.
+      assert.throws(() => verify(html.replace(`data-bowerbird-input-sha="${sha}"`, `data-bowerbird-input-sha="broken"`)));
+    }
+  }
+});
+
+// Why: plain renders without an input SHA retain their existing head and root tag.
+test("plain render without input SHA retains its original generator markup", () => {
+  const out = mkdtempSync(path.join(os.tmpdir(), "bb-plain-"));
+  assert.equal(run("render", inputFile, "--out", out, "--formats", "html").status, 0);
+  for (const view of ["flat", "iso"]) {
+    const html = text(path.join(out, `bowerbird.${view}.html`));
+    assert.match(html, /<meta name="generator" content="bowerbird">/);
+    assert.doesNotMatch(html, /bowerbird-input-sha|data-bowerbird-version/);
+  }
+});
+
+// Why: an output outside a leased checkout must still link to durable repository files.
+test("composition source links do not point into the leased worktree or use absolute paths", () => {
+  const out = mkdtempSync(path.join(os.tmpdir(), "bb-composition-"));
+  assert.equal(run("composition", inputFile, "--out", out, "--input-sha", sha).status, 0);
+  const common = execFileSync("git", ["-C", root, "rev-parse", "--path-format=absolute", "--git-common-dir"], { encoding: "utf8" }).trim();
+  const stableRoot = path.dirname(common);
+  for (const name of ["overview", ...input.composition.groups.map((g) => `group-${g.id}`)]) {
+    for (const view of ["flat", "iso"]) {
+      const html = text(path.join(out, `${name}.${view}.html`));
+      const hrefs = [...html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+      for (const href of hrefs) {
+        assert.doesNotMatch(href, /\.treehouse|^\/|^file:|^[A-Za-z]:\\/);
+      }
+      if (name === "group-author") {
+        const source = hrefs.find((href) => href.endsWith("skills/bowerbird/SKILL.md"));
+        assert.ok(source);
+        assert.equal(path.resolve(out, source), path.join(stableRoot, "skills/bowerbird/SKILL.md"));
+      }
+    }
+  }
 });
