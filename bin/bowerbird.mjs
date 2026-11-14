@@ -22,7 +22,7 @@ const HELP = `bowerbird: reproducible HTML/SVG/PNG/WebP architecture diagrams
                    [--embed-font [path]] [--scale 2] [--repo-root dir]
   With no --view (and no meta.view), render writes both <name>.flat.* and <name>.iso.*.
   --view flat or --view iso limits output to one view with <name>.* filenames.
-  bowerbird composition <file.bower.json> --out <file.html> [--input-sha <40-hex>]\n                                           one standalone light isometric composition map\n  bowerbird validate <file> [--strict]     schema + layout checks (strict: warnings fail)
+  bowerbird composition <file.bower.json> --out <dir> [--input-sha <40-hex>]\n                                           linked ordinary diagrams for overview and groups\n  bowerbird validate <file> [--strict]     schema + layout checks (strict: warnings fail)
   bowerbird sync <file> [--check] [--merge-ref origin/main] [--render ...]
                                            refresh node status from git evidence
   bowerbird plan --tasks <md> [--spec <md> ...] [--prs <json>] --out <file.bower.json> [--update <existing.bower.json>]
@@ -81,8 +81,8 @@ async function main(argv) {
 
   switch (cmd) {
     case "composition": {
-      if (positionals.length !== 2 || !values.out || !values.out.endsWith(".html")) throw new Error("composition: expected one input and --out <file.html>");
-      console.log(writeComposition(file, values.out, values["input-sha"]));
+      if (positionals.length !== 2 || !values.out || values.out.endsWith(".html")) throw new Error("composition: expected one input and --out <dir>; the standalone HTML output is deprecated");
+      console.log(await writeComposition(file, values.out, values["input-sha"]));
       return 0;
     }
     case "verify": {
