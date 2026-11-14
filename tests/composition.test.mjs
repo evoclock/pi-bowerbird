@@ -142,6 +142,7 @@ test("plain render without input SHA retains its original generator markup", () 
     const html = text(path.join(out, `bowerbird.${view}.html`));
     assert.match(html, /<meta name="generator" content="bowerbird">/);
     assert.doesNotMatch(html, /bowerbird-input-sha|data-bowerbird-version/);
+    assert.match(html, /<html lang="en" data-theme="dark" data-light-flat-fill="dots"/);
   }
 });
 
@@ -193,6 +194,20 @@ test("standalone composition embeds all group renders, keeps style parity and ha
     check(page, view);
     // Deliberate break: dropping one embedded group must fail complete membership.
     assert.throws(() => check(page.replace('"author":', '"missing":'), view));
+  }
+});
+
+// Why: every attached view must open with existing light theme and filled category planes.
+test("standalone overview and embedded groups default to light filled without changing plain render", () => {
+  const out = mkdtempSync(path.join(os.tmpdir(), "bb-composition-"));
+  assert.equal(run("composition", inputFile, "--out", out, "--input-sha", sha).status, 0);
+  for (const view of ["flat", "iso"]) {
+    const page = text(path.join(out, `composition.${view}.html`));
+    const check = (html) => assert.match(html, /<html lang="en" data-theme="light" data-light-flat-fill="filled"/);
+    check(page);
+    const embedded = JSON.parse(page.match(/<script type="application\/json" id="composition-pages">([^<]+)<\/script>/)[1]);
+    for (const group of input.composition.groups) check(embedded[group.id]);
+    assert.throws(() => check(page.replace('data-theme="light"', 'data-theme="dark"')));
   }
 });
 

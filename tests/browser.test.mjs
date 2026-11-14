@@ -142,10 +142,29 @@ test("standalone composition switches groups and returns in one browser document
       await send("Page.navigate", { url: `file://${attached[view]}` });
       await sleep(1100);
       assert.equal(await evalJs(`document.querySelector('#composition-frame').hidden`), true);
+      // Why: the standalone overview and each isolated group open light and filled; controls remain reversible.
+      assert.equal(await evalJs(`document.documentElement.dataset.theme + '/' + document.documentElement.dataset.lightFlatFill`), "light/filled");
+      assert.equal(await evalJs(`document.getElementById('theme').click(); document.documentElement.dataset.theme`), "dark");
+      assert.equal(await evalJs(`document.getElementById('theme').click(); document.documentElement.dataset.theme`), "light");
+      if (view === "flat") {
+        assert.equal(await evalJs(`document.getElementById('light-flat-fill').click(); document.documentElement.dataset.lightFlatFill`), "dots");
+        assert.equal(await evalJs(`document.getElementById('light-flat-fill').click(); document.documentElement.dataset.lightFlatFill`), "filled");
+      }
       for (const [group, member] of [["author", "agent"], ["engine", "model"], ["render", "html"]]) {
         assert.equal(await evalJs(`document.querySelector('#stage .bb-node[data-id="${group}"]').dispatchEvent(new MouseEvent('click', { bubbles: true })); document.querySelector('#composition-frame').hidden`), false);
         await sleep(500);
         assert.equal(await evalJs(`Boolean(document.querySelector('#composition-frame').contentDocument.querySelector('#detail-${member}'))`), true);
+        assert.equal(await evalJs(`document.querySelector('#composition-frame').contentDocument.documentElement.dataset.theme + '/' + document.querySelector('#composition-frame').contentDocument.documentElement.dataset.lightFlatFill`), "light/filled");
+        assert.equal(await evalJs(`(() => { const doc = document.querySelector('#composition-frame').contentDocument; doc.getElementById('theme').click(); return doc.documentElement.dataset.theme; })()`), "dark");
+        assert.equal(await evalJs(`(() => { const doc = document.querySelector('#composition-frame').contentDocument; doc.getElementById('theme').click(); return doc.documentElement.dataset.theme; })()`), "light");
+        if (view === "flat") {
+          const plane = `document.querySelector('#composition-frame').contentDocument.defaultView.getComputedStyle(document.querySelector('#composition-frame').contentDocument.querySelector('.bb-node .bb-node-box')).fill`;
+          const filled = await evalJs(plane);
+          assert.equal(await evalJs(`(() => { const doc = document.querySelector('#composition-frame').contentDocument; doc.getElementById('light-flat-fill').click(); return doc.documentElement.dataset.lightFlatFill; })()`), "dots");
+          assert.notEqual(await evalJs(plane), filled);
+          assert.equal(await evalJs(`(() => { const doc = document.querySelector('#composition-frame').contentDocument; doc.getElementById('light-flat-fill').click(); return doc.documentElement.dataset.lightFlatFill; })()`), "filled");
+          assert.equal(await evalJs(plane), filled);
+        }
         assert.equal(await evalJs(`Boolean(document.querySelector('#composition-frame').contentDocument.querySelector('#viewport').style.transform)`), true);
         assert.equal(await evalJs(`document.querySelector('#composition-back').click(); document.querySelector('#composition-frame').hidden && !document.querySelector('.page').hidden`), true);
         assert.equal(await evalJs(`location.href.endsWith('composition.${view}.html')`), true);
