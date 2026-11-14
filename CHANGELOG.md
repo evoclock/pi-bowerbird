@@ -5,6 +5,11 @@ All notable changes to `@evoclock/pi-bowerbird` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Deprecated
+- The standalone composition HTML page and its custom styling are deprecated. Composition now writes linked overview and group diagrams through the package's ordinary render path. Use `--out <dir>` instead of `--out <file.html>`.
+
 ## [0.2.0] - 2026-11-12
 
 ### Added

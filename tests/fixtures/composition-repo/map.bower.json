@@ -1,6 +1,20 @@
 {
   "schema": "bowerbird/v1",
-  "meta": { "title": "Flock composition" },
+  "meta": { "title": "Flock composition", "statusTracking": true },
+  "categories": { "teal": { "label": "Planning" }, "rust": { "label": "Execution" } },
+  "zones": [
+    { "id": "planning", "title": "Planning", "category": "teal" },
+    { "id": "execution", "title": "Execution", "category": "rust" }
+  ],
+  "nodes": [
+    { "id": "ship", "title": "Ship", "zone": "planning", "at": [0, 0], "category": "teal", "status": "partial" },
+    { "id": "review", "title": "Review", "zone": "execution", "at": [1, 0], "category": "rust", "status": "implemented" },
+    { "id": "test", "title": "Test", "zone": "execution", "at": [1, 1], "category": "rust", "status": "implemented" },
+    { "id": "publish", "title": "Publish", "zone": "execution", "at": [1, 2], "category": "rust", "status": "planned" }
+  ],
+  "edges": [
+    { "from": "ship", "to": "review" }, { "from": "ship", "to": "publish" }, { "from": "review", "to": "test" }
+  ],
   "composition": {
     "groups": [
       { "id": "planning", "title": "Planning", "status": "partial" },
