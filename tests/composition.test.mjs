@@ -166,3 +166,45 @@ test("composition source links do not point into the leased worktree or use abso
     }
   }
 });
+
+// Why: a single file must contain ordinary renders for every group without another page request.
+test("standalone composition embeds all group renders, keeps style parity and has no page hrefs", () => {
+  const out = mkdtempSync(path.join(os.tmpdir(), "bb-composition-"));
+  assert.equal(run("composition", inputFile, "--out", out, "--input-sha", sha).status, 0);
+  const check = (page, view) => {
+    assert.deepEqual(styles(page), styles(text(path.join(out, `overview.${view}.html`))));
+    assert.match(page, new RegExp(`<meta name="bowerbird-input-sha" content="${sha}">`));
+    assert.match(page, /id="composition-back"[^>]*>Back to overview<\/button>/);
+    assert.match(page, /id="composition-frame"/);
+    assert.doesNotMatch(page, /href="(?:overview|group-[^"/]+)\.(?:iso|flat)\.html"/);
+    const match = page.match(/<script type="application\/json" id="composition-pages">([^<]+)<\/script>/);
+    assert.ok(match);
+    const pages = JSON.parse(match[1]);
+    assert.deepEqual(Object.keys(pages).sort(), input.composition.groups.map((group) => group.id).sort());
+    for (const group of input.composition.groups) {
+      const inner = pages[group.id];
+      assert.deepEqual(styles(inner), styles(text(path.join(out, `group-${group.id}.${view}.html`))));
+      assert.match(inner, new RegExp(`data-id="${group.id === "author" ? "agent" : group.id === "engine" ? "model" : "html"}"`));
+      assert.doesNotMatch(inner, /href="(?:overview|group-[^"/]+)\.(?:iso|flat)\.html"/);
+    }
+  };
+  for (const view of ["flat", "iso"]) {
+    const page = text(path.join(out, `composition.${view}.html`));
+    check(page, view);
+    // Deliberate break: dropping one embedded group must fail complete membership.
+    assert.throws(() => check(page.replace('"author":', '"missing":'), view));
+  }
+});
+
+// Why: standalone output includes both views even if an authored input prefers one view.
+test("composition always emits standalone flat and iso views", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "bb-composition-"));
+  const file = path.join(dir, "map.bower.json");
+  const source = structuredClone(input);
+  source.meta.view = "iso";
+  writeFileSync(file, JSON.stringify(source));
+  const out = path.join(dir, "output");
+  const result = run("composition", file, "--out", out, "--input-sha", sha);
+  assert.equal(result.status, 0, result.stderr);
+  for (const view of ["flat", "iso"]) assert.equal(existsSync(path.join(out, `composition.${view}.html`)), true);
+});

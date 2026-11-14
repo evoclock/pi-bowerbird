@@ -9,6 +9,7 @@ import { existsSync, mkdtempSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "../lib/export.mjs";
+import { writeComposition } from "../lib/composition.mjs";
 
 const CHROME = process.env.CHROME_BIN ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const repo = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -114,6 +115,35 @@ test("viewer controls keep working after panning (flat and iso)", { skip: !exist
         assert.equal(await fill(), dotsFill, `${page}: dots-only restores the neutral plane`);
       } else assert.equal(await evalJs(`document.getElementById("light-flat-fill") === null`), true);
       assert.equal(await evalJs(`document.documentElement.dataset.theme`), "light");
+    }
+  });
+});
+
+// Why: an attached composition file must switch diagrams by node click and return without loading another file.
+test("standalone composition switches groups and returns in one browser document", { skip: !existsSync(CHROME) && "Chrome not installed" }, async () => {
+  const scratch = path.join(repo, "deprecated");
+  mkdirSync(scratch, { recursive: true });
+  const out = mkdtempSync(path.join(scratch, "composition-browser-"));
+  const file = path.join(repo, "examples/bowerbird.bower.json");
+  await writeComposition(file, out, "0123456789abcdef0123456789abcdef01234567");
+  await withBrowser(async (send) => {
+    const evalJs = async (expression) => {
+      const result = await send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true });
+      assert.equal(result.result.exceptionDetails, undefined, JSON.stringify(result.result.exceptionDetails));
+      return result.result.result.value;
+    };
+    for (const view of ["flat", "iso"]) {
+      await send("Page.navigate", { url: `file://${path.join(out, `composition.${view}.html`)}` });
+      await sleep(1100);
+      assert.equal(await evalJs(`document.querySelector('#composition-frame').hidden`), true);
+      for (const [group, member] of [["author", "agent"], ["engine", "model"], ["render", "html"]]) {
+        assert.equal(await evalJs(`document.querySelector('#stage .bb-node[data-id="${group}"]').dispatchEvent(new MouseEvent('click', { bubbles: true })); document.querySelector('#composition-frame').hidden`), false);
+        await sleep(500);
+        assert.equal(await evalJs(`Boolean(document.querySelector('#composition-frame').contentDocument.querySelector('#detail-${member}'))`), true);
+        assert.equal(await evalJs(`Boolean(document.querySelector('#composition-frame').contentDocument.querySelector('#viewport').style.transform)`), true);
+        assert.equal(await evalJs(`document.querySelector('#composition-back').click(); document.querySelector('#composition-frame').hidden && !document.querySelector('.page').hidden`), true);
+        assert.equal(await evalJs(`location.href.endsWith('composition.${view}.html')`), true);
+      }
     }
   });
 });
