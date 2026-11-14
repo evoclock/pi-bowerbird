@@ -9,7 +9,8 @@ import { normalise, BowerError } from "../lib/model.mjs";
 import { renderComposition, GROUP_TOKENS } from "../lib/composition.mjs";
 import { loadTheme } from "../lib/themes.mjs";
 import { layout } from "../lib/layout.mjs";
-import { isoLayout, renderIsoSvg } from "../lib/render-iso.mjs";
+import { isoCss, isoLayout, renderIsoSvg } from "../lib/render-iso.mjs";
+import { paintCss } from "../lib/paint.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const fixture = path.join(root, "fixtures/composition-repo");
@@ -73,6 +74,7 @@ const ratio = (a, b) => {
 test("all composition colours come from existing theme and iso paint", () => {
   const source = JSON.parse(readFileSync(path.join(root, "../examples/bowerbird.bower.json")));
   source.categories = Object.fromEntries(Object.keys(themes.light.categories).map((id) => [id, { label: id }]));
+  source.meta.style = "expressive";
   const model = normalise(source);
   const baseline = renderIsoSvg(model, isoLayout(model, layout(model)), { themes });
   const allowed = colors(baseline);
@@ -88,6 +90,38 @@ test("all composition colours come from existing theme and iso paint", () => {
   assert.throws(() => check(html + '<path fill="#' + '123abc"/>'));
 });
 
+// Why: composition must reuse the existing iso and paint builders byte for byte.
+test("category faces, gradients and status opacities match the ordinary expressive iso render", () => {
+  const source = JSON.parse(readFileSync(path.join(root, "../examples/bowerbird.bower.json")));
+  source.meta.style = "expressive";
+  source.categories = Object.fromEntries(GROUP_TOKENS.map((id) => [id, { label: id }]));
+  const model = normalise(source);
+  const ordinary = renderIsoSvg(model, isoLayout(model, layout(model)), { themes });
+  const composition = renderComposition(input.composition, input.meta.title, golden.sha);
+  const expected = [];
+  for (const [name, theme] of Object.entries(themes)) {
+    const scope = `html[data-theme=${name}]`;
+    const faceRules = isoCss(theme, model.categories, scope);
+    const paintRules = paintCss(theme, model.categories, scope, { iso: true });
+    for (const token of GROUP_TOKENS) {
+      for (const face of ["iso-roof", "iso-left", "iso-right"]) {
+        const rule = faceRules.split("\n").find((line) => line.startsWith(`${scope} .cat-${token} .${face}{`));
+        assert.ok(rule, `${token} ${face}`);
+        expected.push(rule);
+      }
+    }
+    const stroke = faceRules.split("\n").find((line) => line.startsWith(`${scope} .cat-${GROUP_TOKENS[0]} .iso-roof{`));
+    assert.match(stroke, /;stroke:/);
+    expected.push(paintRules.split("\n").find((line) => line.startsWith(`${scope} .cat-${GROUP_TOKENS[0]} .iso-roof{`)));
+  }
+  expected.push(".bb-node.status-planned .iso-face{fill-opacity:.06;stroke-dasharray:5 4;stroke-width:1.3}");
+  expected.push(".iso-hatch line{stroke-width:1;opacity:.35}");
+  const check = (text) => { for (const rule of expected) { assert.ok(ordinary.includes(rule), rule); assert.ok(text.includes(rule), rule); } };
+  check(composition);
+  // Deliberate break: alter a builder's face rule in composition only.
+  assert.throws(() => check(composition.replace(expected[0], expected[0].replace("fill:", "fill:broken-"))));
+});
+
 // Why: status treatment is neutral: no status-bearing component may carry category colour.
 test("status treatment uses surfaces and edges, never category hues", () => {
   const html = renderComposition(input.composition, input.meta.title, golden.sha);
@@ -96,16 +130,19 @@ test("status treatment uses surfaces and edges, never category hues", () => {
   const check = (map) => {
     assert.doesNotMatch(map, /cat-(?:sage|rust|peach|mustard|slate|mauve|teal|olive)/);
     assert.doesNotMatch(map, /--status-(?:built|partial|planned)/);
+    const statusRules = map.match(/\.[^{}\n]*status-(?:implemented|partial|planned)[^{}]*\{[^}]*\}/g) ?? [];
+    assert.ok(statusRules.length);
     for (const theme of Object.values(themes)) for (const colour of Object.values(theme.categories)) {
-      assert.ok(!colors(map).has(colour.toLowerCase()), `status map must not contain category token ${colour}`);
+      for (const rule of statusRules) assert.ok(!colors(rule).has(colour.toLowerCase()), `status rule must not contain category token ${colour}`);
     }
   };
   for (const map of panelMaps) check(map);
-  assert.match(html, /status-planned \.iso-face\{fill:none;stroke-dasharray:4 4/);
-  assert.match(html, /status-partial \.iso-hatch line\{stroke:/);
+  assert.match(html, /status-planned \.iso-face\{fill-opacity:\.06;stroke-dasharray:5 4/);
+  assert.match(html, /\.iso-hatch line\{stroke-width:1;opacity:\.35/);
   for (const status of ["BUILT", "PARTIAL", "PLANNED"]) assert.match(html, new RegExp(`· ${status}<`));
   // Deliberate break: assigning a category to a status-bearing slab fails.
   assert.throws(() => check(panelMaps[0].replace('class="bb-node map-item', 'class="bb-node cat-sage map-item')));
+  assert.throws(() => check(panelMaps[0] + `.bb-node.status-planned .iso-roof{fill:${themes.light.categories.sage}}`));
 });
 
 // Why: every group swatch needs a unique theme hue and the group's visible name.
@@ -117,10 +154,10 @@ test("group colours are unique, labelled and deterministic", () => {
   const legend = html.match(/<aside class="composition-legend"[\s\S]*?<\/aside>/)?.[0] ?? "";
   const check = (text) => {
     for (const [i, group] of input.composition.groups.entries()) {
-      assert.ok(text.includes(`background:var(--group-${i})`));
+      assert.ok(text.includes(`class="swatch group-${i}"`));
       assert.ok(text.includes(`>${group.title}</span>`), `missing group label ${group.title}`);
       assert.ok(html.includes(`cat-${GROUP_TOKENS[i]}`));
-      for (const theme of Object.values(themes)) assert.ok(html.includes(`--group-${i}:${theme.categories[GROUP_TOKENS[i]]}`));
+      for (const [name, theme] of Object.entries(themes)) assert.ok(html.includes(`html[data-theme=${name}] .swatch.group-${i}{background:${theme.categories[GROUP_TOKENS[i]]}`));
     }
   };
   check(legend);
@@ -137,8 +174,8 @@ test("composition label and page contrast meets WCAG AA in both themes", () => {
   for (const theme of Object.values(themes)) {
     assert.ok(ratio(theme.surfaces.text, theme.surfaces.canvas) >= 4.5);
     assert.ok(ratio(theme.surfaces.muted, theme.surfaces.canvas) >= 4.5);
-    assert.ok(html.includes(`fill:${theme.surfaces.canvas};fill-opacity:1`));
-    assert.ok(html.includes(`fill:${theme.surfaces.text}`));
+    assert.ok(html.includes(`--bg:${theme.surfaces.canvas}`));
+    assert.ok(html.includes(`--ink:${theme.surfaces.text}`));
   }
   assert.match(html, /\.is-dimmed\{opacity:\.12\}/);
 });

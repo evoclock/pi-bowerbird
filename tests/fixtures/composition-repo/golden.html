@@ -6,613 +6,802 @@
 <meta name="bowerbird-input-sha" content="0123456789abcdef0123456789abcdef01234567">
 <title>Flock composition</title>
 <style>
-:root{color-scheme:light dark}html[data-theme=light]{--bg:#fbf9f6;--panel:#fffdfa;--ink:#2f2a27;--line:#d2cbc4;--group-0:#2f6869;--group-1:#b9531f;--group-2:#4f5d6e;--group-3:#b4643a;--group-4:#5e6334;--group-5:#3d8461;--group-6:#8a7026;--group-7:#76536b;}
-html[data-theme=dark]{--bg:#1a1816;--panel:#383431;--ink:#ead1b5;--line:#5c564f;--group-0:#3f6f70;--group-1:#e77843;--group-2:#617082;--group-3:#ee9b69;--group-4:#6e7354;--group-5:#79c39e;--group-6:#ceb05e;--group-7:#76536b;}body{margin:2rem auto;max-width:1500px;padding:0 2rem;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}button{cursor:pointer;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:.6rem;margin:.3rem}button:focus-visible,.bb-node:focus-visible{outline:3px solid var(--ink)}svg{display:block;max-width:100%;height:auto}.map{overflow:auto}.panel[hidden]{display:none}.is-dimmed{opacity:.12}.bb-node,.bb-edge{transition:opacity .2s}.connections{display:flex;gap:2rem;flex-wrap:wrap}.connections li{min-width:140px}.composition-legend{border:1px solid var(--line);border-radius:6px;padding:.5rem 1rem;margin:1rem 0}.composition-legend>div{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;margin:.5rem 0}.legend-item{display:inline-flex;align-items:center;gap:.4rem}.swatch{display:inline-block;width:1.2rem;height:1.2rem;border:2px solid var(--ink);border-radius:2px}.swatch.status-built,.swatch.status-partial{background:var(--panel)}.swatch.status-planned{border-style:dashed;background:transparent}.swatch.status-partial{background-image:repeating-linear-gradient(45deg,transparent 0 4px,var(--ink) 4px 6px)}
+:root{color-scheme:light dark}html[data-theme=light]{--bg:#fbf9f6;--panel:#fffdfa;--ink:#2f2a27;--line:#d2cbc4}html[data-theme=light] .swatch.group-0{background:#2f6869}html[data-theme=light] .swatch.group-1{background:#b9531f}html[data-theme=light] .swatch.group-2{background:#4f5d6e}html[data-theme=light] .swatch.group-3{background:#b4643a}html[data-theme=light] .swatch.group-4{background:#5e6334}html[data-theme=light] .swatch.group-5{background:#3d8461}html[data-theme=light] .swatch.group-6{background:#8a7026}html[data-theme=light] .swatch.group-7{background:#76536b}
+html[data-theme=dark]{--bg:#1a1816;--panel:#383431;--ink:#ead1b5;--line:#5c564f}html[data-theme=dark] .swatch.group-0{background:#3f6f70}html[data-theme=dark] .swatch.group-1{background:#e77843}html[data-theme=dark] .swatch.group-2{background:#617082}html[data-theme=dark] .swatch.group-3{background:#ee9b69}html[data-theme=dark] .swatch.group-4{background:#6e7354}html[data-theme=dark] .swatch.group-5{background:#79c39e}html[data-theme=dark] .swatch.group-6{background:#ceb05e}html[data-theme=dark] .swatch.group-7{background:#76536b}body{margin:2rem auto;max-width:1500px;padding:0 2rem;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}button{cursor:pointer;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:.6rem;margin:.3rem}button:focus-visible,.bb-node:focus-visible{outline:3px solid var(--ink)}svg{display:block;max-width:100%;height:auto}.map{overflow:auto}.panel[hidden]{display:none}.is-dimmed{opacity:.12}.bb-node,.bb-edge{transition:opacity .2s}.connections{display:flex;gap:2rem;flex-wrap:wrap}.connections li{min-width:140px}.composition-legend{border:1px solid var(--line);border-radius:6px;padding:.5rem 1rem;margin:1rem 0}.composition-legend>div{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;margin:.5rem 0}.legend-item{display:inline-flex;align-items:center;gap:.4rem}.swatch{display:inline-block;width:1.2rem;height:1.2rem;border:2px solid var(--ink);border-radius:2px}.swatch.status-built,.swatch.status-partial{background:var(--panel)}.swatch.status-planned{border-style:dashed;background:transparent}.swatch.status-partial{background-image:repeating-linear-gradient(45deg,transparent 0 4px,var(--ink) 4px 6px)}
 </style></head>
-<body><h1>Flock composition</h1><p>Choose a group to open its isometric map. Select a workflow to follow its playbooks and skills in step order.</p><nav aria-label="Workflows"><button type="button" class="workflow" data-workflow="ship" data-chain="review test publish">Ship</button></nav><button id="theme-toggle" type="button">Dark theme</button><aside class="composition-legend" aria-label="Map colour legend"><h2>Legend</h2><div><strong>Groups</strong><span class="legend-item"><span class="swatch" style="background:var(--group-0)"></span>Planning</span><span class="legend-item"><span class="swatch" style="background:var(--group-1)"></span>Execution</span></div><div><strong>Status</strong><span class="legend-item"><span class="swatch status-built"></span>built</span><span class="legend-item"><span class="swatch status-partial"></span>partial</span><span class="legend-item"><span class="swatch status-planned"></span>planned</span></div></aside><ol id="chain-order" aria-label="Workflow step order" hidden></ol><section id="overview"><h2>Overview</h2><p>Each group shows its component count and badges: B built, P partial, L planned.</p><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 677 649" width="677" height="649" role="group" aria-labelledby="bb-t">
+<body><h1>Flock composition</h1><p>Choose a group to open its isometric map. Select a workflow to follow its playbooks and skills in step order.</p><nav aria-label="Workflows"><button type="button" class="workflow" data-workflow="ship" data-chain="review test publish">Ship</button></nav><button id="theme-toggle" type="button">Dark theme</button><aside class="composition-legend" aria-label="Map colour legend"><h2>Legend</h2><div><strong>Groups</strong><span class="legend-item"><span class="swatch group-0"></span>Planning</span><span class="legend-item"><span class="swatch group-1"></span>Execution</span></div><div><strong>Status</strong><span class="legend-item"><span class="swatch status-built"></span>built</span><span class="legend-item"><span class="swatch status-partial"></span>partial</span><span class="legend-item"><span class="swatch status-planned"></span>planned</span></div></aside><ol id="chain-order" aria-label="Workflow step order" hidden></ol><section id="overview"><h2>Overview</h2><p>Each group shows its component count and badges: B built, P partial, L planned.</p><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 677 609" width="677" height="609" role="group" aria-labelledby="bb-t">
 <title id="bb-t">Flock composition</title>
 <style>
-text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
-.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
-.bb-subtitle{font-size:14px;font-weight:400}
-.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
-.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
-.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
-.bb-meter-unit{font-size:17px;font-weight:300}
-.bb-meter-track{stroke-width:1;fill:none}
-.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
-.bb-meter-part{stroke-dasharray:2 3}
-.bb-rule{stroke-width:1;fill:none}
-.bb-zone{stroke-width:1}
-.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
-.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
+.bb-title{font-size:32px;font-weight:700;letter-spacing:-.025em}
+.bb-subtitle{font-size:14px}
+.bb-kicker-top{font-size:11px;font-weight:800;letter-spacing:2px}
+.bb-summary{font-size:11px;font-weight:700;letter-spacing:.08em}
+.bb-meter-big{font-size:34px;font-weight:750;letter-spacing:-.03em}
+.bb-meter-track{stroke-width:1}
+.bb-zone{stroke-width:1.2}
+.bb-zone-accent{fill:none;stroke-width:2.5;stroke-linecap:round}
+.bb-zone-kicker{font-size:10.5px;font-weight:800;letter-spacing:1.6px}
+.bb-zone-title{font-size:20px;font-weight:650;letter-spacing:-.01em}
 .bb-zone-sub{font-size:11.5px}
-.bb-node-box{stroke-width:1}
-.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
-.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
-.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
-.bb-copy{font-size:13.5px;font-weight:400}
-.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
-.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
-.bb-dot{stroke-width:1.1;fill:none}
-.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
-.bb-edge.control{stroke-dasharray:3 4}
-.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
-.bb-edge.is-planned{opacity:.4}
-.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
-.bb-legend-text{font-size:12px;font-weight:400}
-.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
-.iso-face{stroke-width:.8;stroke-linejoin:round}
-.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
-.iso-hatch line{stroke-width:.8;opacity:.45}
-.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
-html[data-theme=light] .bb-canvas{fill:#fbf9f6}
-html[data-theme=light] .bb-title,html[data-theme=light] .bb-zone-title,html[data-theme=light] .bb-node-title,html[data-theme=light] .bb-meter-big,html[data-theme=light] .bb-meter-unit{fill:#2f2a27}
-html[data-theme=light] .bb-subtitle,html[data-theme=light] .bb-copy,html[data-theme=light] .bb-hint,html[data-theme=light] .bb-legend-text,html[data-theme=light] .bb-meta,html[data-theme=light] .bb-kicker,html[data-theme=light] .bb-zone-kicker,html[data-theme=light] .bb-kicker-top,html[data-theme=light] .bb-zone-sub{fill:#716961}
-html[data-theme=light] .bb-rule,html[data-theme=light] .bb-meter-track{stroke:#dcdad7}
-html[data-theme=light] .bb-meter-solid{stroke:#2f2a27}
-html[data-theme=light] .bb-meter-part{stroke:#716961}
-html[data-theme=light] .bb-zone{fill:#f5f3f0;stroke:#dcdad7}
-html[data-theme=light] .bb-node-box{fill:#fffdfa;stroke:#dcdad7}
-html[data-theme=light] .bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
-html[data-theme=light] .bb-node.status-planned .bb-node-title{fill:#716961}
-html[data-theme=light] .bb-status-text{fill:#716961}
-html[data-theme=light] .bb-status.is-implemented .bb-status-text{fill:#716961}
-html[data-theme=light] .bb-dot{stroke:#716961}
-html[data-theme=light] .bb-dot-fill{fill:#716961}
-html[data-theme=light] .bb-status.is-implemented .bb-dot{stroke:#2f2a27}
-html[data-theme=light] .bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
-html[data-theme=light] .bb-edge.data{stroke:#888079}
-html[data-theme=light] .bb-edge.control{stroke:#747c86}
-html[data-theme=light] .bb-edge.failure{stroke:#9b4a36}
-html[data-theme=light] .bb-arrow.data{fill:#888079}
-html[data-theme=light] .bb-arrow.control{fill:#747c86}
-html[data-theme=light] .bb-arrow.failure{fill:#9b4a36}
-html[data-theme=light] .bb-label,html[data-theme=light] .iso-label-knockout{stroke:#fbf9f6}
-html[data-theme=light] .bb-label.data{fill:#716961}
-html[data-theme=light] .bb-label.control{fill:#4c535c}
-html[data-theme=light] .bb-label.failure{fill:#9b4a36}
-html[data-theme=light] .bb-flow{stroke:#2f2a27;stroke-opacity:.55}
-html[data-theme=light] .bb-finding-text,html[data-theme=light] .bb-finding-inline{fill:#9b4a36}
-html[data-theme=light] .bb-node.has-finding .bb-node-box{stroke:#9b4a36}
-html[data-theme=light] .bb-pseudo-fill{fill:#2f2a27}
-html[data-theme=light] .bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
-html[data-theme=light] .bb-pseudo-choice{fill:#fffdfa}
-html[data-theme=light] .bb-node.is-selected .bb-node-box,html[data-theme=light] .bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
-html[data-theme=light] .cat-teal .bb-mark,html[data-theme=light] .bb-mark.cat-teal{fill:#3b7273}
-html[data-theme=light] .cat-teal .bb-kicker,html[data-theme=light] .cat-teal .bb-zone-kicker{fill:#407171}
-html[data-theme=light] .cat-teal .bb-node-box{fill:#e9eeeb;stroke:#b5c8c7}
-html[data-theme=light] .cat-teal.status-planned .bb-node-box{fill:none;stroke:#9bb6b5}
-html[data-theme=light] .bb-zone.cat-teal{fill:#eff1ee;stroke:#bececc}
-html[data-theme=light] .cat-teal .iso-roof{fill:#aed5d6;stroke:#53a1a2}
-html[data-theme=light] .cat-teal .iso-left{fill:#8cc3c4;stroke:#53a1a2}
-html[data-theme=light] .cat-teal .iso-right{fill:#6eb4b5;stroke:#53a1a2}
+.bb-node-box{stroke-width:1.2}
+.bb-node-bevel{fill:none;stroke-width:1}
+.bb-node.status-planned .bb-node-wash,.bb-node.status-planned .bb-node-bevel{display:none}
+.bb-edge-glow{fill:none;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+.bb-edge-glow.is-planned{display:none}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:6 4}
+.bb-node.status-planned .bb-band{fill-opacity:.28;stroke-opacity:0}
+.bb-node.status-partial .bb-band-rest{fill-opacity:.28}
+.bb-kicker{font-size:10.5px;font-weight:800;letter-spacing:1.1px}
+.bb-node-title{font-size:17px;font-weight:700}
+.bb-copy{font-size:13.5px}
+.bb-hint{font-size:11.5px;font-weight:600}
+.bb-badge{stroke-width:1}
+.bb-badge-text{font-size:9.5px;font-weight:700;letter-spacing:.4px}
+.bb-dot{stroke-width:1.3;fill:none}
+.bb-edge{fill:none;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:6 6}
+.bb-edge.failure{stroke-dasharray:3 5}
+.bb-edge.is-planned{opacity:.45}
+.bb-label-bg{stroke-width:1}
+.bb-label{font-size:11.5px;font-weight:700}
+.bb-legend-text{font-size:11px}
+
+.iso-face{stroke-width:1.1;stroke-linejoin:round}
+.iso-bevel{fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.iso-bevel-soft{stroke-width:1;opacity:.35}
+.bb-zone-floor-grid{fill:none;stroke-width:.8}
+.bb-node.status-planned .iso-face{fill-opacity:.06;stroke-dasharray:5 4;stroke-width:1.3}
+.iso-tag-halo{paint-order:stroke;stroke-width:5px;stroke-linejoin:round}
+.iso-hatch line{stroke-width:1;opacity:.35}
+.bb-node[tabindex]:hover .iso-roof,.bb-node[tabindex]:focus .iso-roof,.bb-node.is-selected .iso-roof{stroke-width:2.6}
+html[data-theme=light] .iso-edge-line{stroke:#d2cbc4}
+html[data-theme=light] .iso-tag-halo{stroke:#fbf9f6}
+html[data-theme=light] .iso-hatch line{stroke:#2f2a27}
+html[data-theme=light] .cat-teal .iso-roof{fill:#d1dcda;stroke:#638d8d}
+html[data-theme=light] .cat-teal .iso-left{fill:#95b1b0;stroke:#638d8d}
+html[data-theme=light] .cat-teal .iso-right{fill:#bacbc9;stroke:#638d8d}
 html[data-theme=light] .cat-teal.status-planned .iso-face{stroke:#2f6869}
-html[data-theme=light] .cat-rust .bb-mark,html[data-theme=light] .bb-mark.cat-rust{fill:#995d3f}
-html[data-theme=light] .cat-rust .bb-kicker,html[data-theme=light] .cat-rust .bb-zone-kicker{fill:#955e42}
-html[data-theme=light] .cat-rust .bb-node-box{fill:#f4ebe5;stroke:#d8c0b3}
-html[data-theme=light] .cat-rust.status-planned .bb-node-box{fill:none;stroke:#caab9b}
-html[data-theme=light] .bb-zone.cat-rust{fill:#f5f0eb;stroke:#dcc7bb}
-html[data-theme=light] .cat-rust .iso-roof{fill:#d6bbae;stroke:#a36d52}
-html[data-theme=light] .cat-rust .iso-left{fill:#c59f8c;stroke:#a36d52}
-html[data-theme=light] .cat-rust .iso-right{fill:#b6866d;stroke:#a36d52}
+html[data-theme=light] .cat-rust .iso-roof{fill:#f0d8ca;stroke:#cb7e56}
+html[data-theme=light] .cat-rust .iso-left{fill:#daa68b;stroke:#cb7e56}
+html[data-theme=light] .cat-rust .iso-right{fill:#e6c4b1;stroke:#cb7e56}
 html[data-theme=light] .cat-rust.status-planned .iso-face{stroke:#b9531f}
-html[data-theme=light] .cat-slate .bb-mark,html[data-theme=light] .bb-mark.cat-slate{fill:#4a5c73}
-html[data-theme=light] .cat-slate .bb-kicker,html[data-theme=light] .cat-slate .bb-zone-kicker{fill:#4e5d71}
-html[data-theme=light] .cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}
-html[data-theme=light] .cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
-html[data-theme=light] .bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
-html[data-theme=light] .cat-slate .iso-roof{fill:#b5c1cf;stroke:#617894}
-html[data-theme=light] .cat-slate .iso-left{fill:#96a7bb;stroke:#617894}
-html[data-theme=light] .cat-slate .iso-right{fill:#7a8fa8;stroke:#617894}
+html[data-theme=light] .cat-slate .iso-roof{fill:#d8dadb;stroke:#7b8591}
+html[data-theme=light] .cat-slate .iso-left{fill:#a5abb2;stroke:#7b8591}
+html[data-theme=light] .cat-slate .iso-right{fill:#c4c7ca;stroke:#7b8591}
 html[data-theme=light] .cat-slate.status-planned .iso-face{stroke:#4f5d6e}
-html[data-theme=light] .cat-peach .bb-mark,html[data-theme=light] .bb-mark.cat-peach{fill:#a76644}
-html[data-theme=light] .cat-peach .bb-kicker,html[data-theme=light] .cat-peach .bb-zone-kicker{fill:#a26647}
-html[data-theme=light] .cat-peach .bb-node-box{fill:#f5ece6;stroke:#dec4b5}
-html[data-theme=light] .cat-peach.status-planned .bb-node-box{fill:none;stroke:#d1b09d}
-html[data-theme=light] .bb-zone.cat-peach{fill:#f6f0eb;stroke:#e0cabd}
-html[data-theme=light] .cat-peach .iso-roof{fill:#d6bcae;stroke:#a36e52}
-html[data-theme=light] .cat-peach .iso-left{fill:#c59f8c;stroke:#a36e52}
-html[data-theme=light] .cat-peach .iso-right{fill:#b6866d;stroke:#a36e52}
+html[data-theme=light] .cat-peach .iso-roof{fill:#efdbd0;stroke:#c78a6a}
+html[data-theme=light] .cat-peach .iso-left{fill:#d8af98;stroke:#c78a6a}
+html[data-theme=light] .cat-peach .iso-right{fill:#e4c9ba;stroke:#c78a6a}
 html[data-theme=light] .cat-peach.status-planned .iso-face{stroke:#b4643a}
-html[data-theme=light] .cat-olive .bb-mark,html[data-theme=light] .bb-mark.cat-olive{fill:#696e40}
-html[data-theme=light] .cat-olive .bb-kicker,html[data-theme=light] .cat-olive .bb-zone-kicker{fill:#6a6e43}
-html[data-theme=light] .cat-olive .bb-node-box{fill:#efede6;stroke:#c6c7b3}
-html[data-theme=light] .cat-olive.status-planned .bb-node-box{fill:none;stroke:#b2b49b}
-html[data-theme=light] .bb-zone.cat-olive{fill:#f2f1eb;stroke:#cccdbc}
-html[data-theme=light] .cat-olive .iso-roof{fill:#cfd2b2;stroke:#949b5a}
-html[data-theme=light] .cat-olive .iso-left{fill:#babf91;stroke:#949b5a}
-html[data-theme=light] .cat-olive .iso-right{fill:#a8ae74;stroke:#949b5a}
+html[data-theme=light] .cat-olive .iso-roof{fill:#dcdbce;stroke:#868a66}
+html[data-theme=light] .cat-olive .iso-left{fill:#adae95;stroke:#868a66}
+html[data-theme=light] .cat-olive .iso-right{fill:#c9c9b8;stroke:#868a66}
 html[data-theme=light] .cat-olive.status-planned .iso-face{stroke:#5e6334}
-html[data-theme=light] .cat-sage .bb-mark,html[data-theme=light] .bb-mark.cat-sage{fill:#427f61}
-html[data-theme=light] .cat-sage .bb-kicker,html[data-theme=light] .cat-sage .bb-zone-kicker{fill:#477d61}
-html[data-theme=light] .cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}
-html[data-theme=light] .cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
-html[data-theme=light] .bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
-html[data-theme=light] .cat-sage .iso-roof{fill:#afd5c2;stroke:#54a17b}
-html[data-theme=light] .cat-sage .iso-left{fill:#8dc3a9;stroke:#54a17b}
-html[data-theme=light] .cat-sage .iso-right{fill:#6fb492;stroke:#54a17b}
+html[data-theme=light] .cat-sage .iso-roof{fill:#d4e2d8;stroke:#6ea287}
+html[data-theme=light] .cat-sage .iso-left{fill:#9cbfac;stroke:#6ea287}
+html[data-theme=light] .cat-sage .iso-right{fill:#bed4c6;stroke:#6ea287}
 html[data-theme=light] .cat-sage.status-planned .iso-face{stroke:#3d8461}
-html[data-theme=light] .cat-mustard .bb-mark,html[data-theme=light] .bb-mark.cat-mustard{fill:#7d6a33}
-html[data-theme=light] .cat-mustard .bb-kicker,html[data-theme=light] .cat-mustard .bb-zone-kicker{fill:#7c6a38}
-html[data-theme=light] .cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}
-html[data-theme=light] .cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
-html[data-theme=light] .bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
-html[data-theme=light] .cat-mustard .iso-roof{fill:#d6cbae;stroke:#a38e52}
-html[data-theme=light] .cat-mustard .iso-left{fill:#c5b68c;stroke:#a38e52}
-html[data-theme=light] .cat-mustard .iso-right{fill:#b6a36d;stroke:#a38e52}
+html[data-theme=light] .cat-mustard .iso-roof{fill:#e5decb;stroke:#a7935b}
+html[data-theme=light] .cat-mustard .iso-left{fill:#c3b58e;stroke:#a7935b}
+html[data-theme=light] .cat-mustard .iso-right{fill:#d7cdb3;stroke:#a7935b}
 html[data-theme=light] .cat-mustard.status-planned .iso-face{stroke:#8a7026}
-html[data-theme=light] .cat-mauve .bb-mark,html[data-theme=light] .bb-mark.cat-mauve{fill:#7b4e6d}
-html[data-theme=light] .cat-mauve .bb-kicker,html[data-theme=light] .cat-mauve .bb-zone-kicker{fill:#7a516c}
-html[data-theme=light] .cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}
-html[data-theme=light] .cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
-html[data-theme=light] .bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
-html[data-theme=light] .cat-mauve .iso-roof{fill:#cfb5c7;stroke:#946184}
-html[data-theme=light] .cat-mauve .iso-left{fill:#bb96af;stroke:#946184}
-html[data-theme=light] .cat-mauve .iso-right{fill:#a87a9a;stroke:#946184}
+html[data-theme=light] .cat-mauve .iso-roof{fill:#e1d8db;stroke:#987e8f}
+html[data-theme=light] .cat-mauve .iso-left{fill:#b9a6b1;stroke:#987e8f}
+html[data-theme=light] .cat-mauve .iso-right{fill:#d0c4ca;stroke:#987e8f}
 html[data-theme=light] .cat-mauve.status-planned .iso-face{stroke:#76536b}
-html[data-theme=light] .iso-shadow{fill:#3b2f26;fill-opacity:0.08}
-html[data-theme=light] .iso-hatch line{stroke:#fbf9f6}
-html[data-theme=light] .iso-tag-bg,html[data-theme=light] .iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
-html[data-theme=light] .bb-label.plain{stroke:none}
-html[data-theme=light] .bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}html[data-theme=dark] .bb-canvas{fill:#1a1816}
-html[data-theme=dark] .bb-title,html[data-theme=dark] .bb-zone-title,html[data-theme=dark] .bb-node-title,html[data-theme=dark] .bb-meter-big,html[data-theme=dark] .bb-meter-unit{fill:#ead1b5}
-html[data-theme=dark] .bb-subtitle,html[data-theme=dark] .bb-copy,html[data-theme=dark] .bb-hint,html[data-theme=dark] .bb-legend-text,html[data-theme=dark] .bb-meta,html[data-theme=dark] .bb-kicker,html[data-theme=dark] .bb-zone-kicker,html[data-theme=dark] .bb-kicker-top,html[data-theme=dark] .bb-zone-sub{fill:#b09080}
-html[data-theme=dark] .bb-rule,html[data-theme=dark] .bb-meter-track{stroke:#35302b}
-html[data-theme=dark] .bb-meter-solid{stroke:#ead1b5}
-html[data-theme=dark] .bb-meter-part{stroke:#b09080}
-html[data-theme=dark] .bb-zone{fill:#1f1c19;stroke:#35302b}
-html[data-theme=dark] .bb-node-box{fill:#272421;stroke:#35302b}
-html[data-theme=dark] .bb-node.status-planned .bb-node-box{fill:none;stroke:#4c443c}
-html[data-theme=dark] .bb-node.status-planned .bb-node-title{fill:#b09080}
-html[data-theme=dark] .bb-status-text{fill:#b09080}
-html[data-theme=dark] .bb-status.is-implemented .bb-status-text{fill:#b09080}
-html[data-theme=dark] .bb-dot{stroke:#b09080}
-html[data-theme=dark] .bb-dot-fill{fill:#b09080}
-html[data-theme=dark] .bb-status.is-implemented .bb-dot{stroke:#ead1b5}
-html[data-theme=dark] .bb-status.is-implemented .bb-dot-fill{fill:#ead1b5}
-html[data-theme=dark] .bb-edge.data{stroke:#958574}
-html[data-theme=dark] .bb-edge.control{stroke:#6b737e}
-html[data-theme=dark] .bb-edge.failure{stroke:#c27a5c}
-html[data-theme=dark] .bb-arrow.data{fill:#958574}
-html[data-theme=dark] .bb-arrow.control{fill:#6b737e}
-html[data-theme=dark] .bb-arrow.failure{fill:#c27a5c}
-html[data-theme=dark] .bb-label,html[data-theme=dark] .iso-label-knockout{stroke:#1a1816}
-html[data-theme=dark] .bb-label.data{fill:#b09080}
-html[data-theme=dark] .bb-label.control{fill:#a4a8ae}
-html[data-theme=dark] .bb-label.failure{fill:#c27a5c}
-html[data-theme=dark] .bb-flow{stroke:#ead1b5;stroke-opacity:.55}
-html[data-theme=dark] .bb-finding-text,html[data-theme=dark] .bb-finding-inline{fill:#c27a5c}
-html[data-theme=dark] .bb-node.has-finding .bb-node-box{stroke:#c27a5c}
-html[data-theme=dark] .bb-pseudo-fill{fill:#ead1b5}
-html[data-theme=dark] .bb-pseudo-ring{fill:#1a1816;stroke:#ead1b5;stroke-width:1.3}
-html[data-theme=dark] .bb-pseudo-choice{fill:#272421}
-html[data-theme=dark] .bb-node.is-selected .bb-node-box,html[data-theme=dark] .bb-node[tabindex]:focus .bb-node-box{stroke:#ead1b5}
-html[data-theme=dark] .cat-teal .bb-mark,html[data-theme=dark] .bb-mark.cat-teal{fill:#7aadae}
-html[data-theme=dark] .cat-teal .bb-kicker,html[data-theme=dark] .cat-teal .bb-zone-kicker{fill:#85a7a5}
-html[data-theme=dark] .cat-teal .bb-node-box{fill:#343a38;stroke:#455554}
-html[data-theme=dark] .cat-teal.status-planned .bb-node-box{fill:none;stroke:#455b5a}
-html[data-theme=dark] .bb-zone.cat-teal{fill:#212221;stroke:#333f3e}
-html[data-theme=dark] .cat-teal .iso-roof{fill:#8fb7b7;stroke:#486f70}
-html[data-theme=dark] .cat-teal .iso-left{fill:#70a2a4;stroke:#486f70}
-html[data-theme=dark] .cat-teal .iso-right{fill:#5a8b8c;stroke:#486f70}
+html[data-theme=light] .bb-node:not([class*=cat-]) .iso-roof{fill:#f3f0ec;stroke:#d2cbc4}
+html[data-theme=light] .bb-node:not([class*=cat-]) .iso-left,html[data-theme=light] .bb-node:not([class*=cat-]) .iso-right{fill:#fffdfa;stroke:#d2cbc4}html[data-theme=light] .bb-canvas{fill:#fbf9f6}
+html[data-theme=light] .bb-title{fill:#2f2a27}
+html[data-theme=light] .bb-subtitle,html[data-theme=light] .bb-zone-sub,html[data-theme=light] .bb-copy{fill:#716961}
+html[data-theme=light] .bb-zone-title{fill:#2f2a27}
+html[data-theme=light] .bb-node-box{fill:#fffdfa;stroke:#d2cbc4}
+html[data-theme=light] .bb-node-title{fill:#2f2a27}
+html[data-theme=light] .bb-hint{fill:#716961}
+html[data-theme=light] .bb-badge{fill:#f3f0ec;stroke:#d2cbc4}
+html[data-theme=light] .bb-badge-text{fill:#2f2a27}
+html[data-theme=light] .bb-edge.data{stroke:#6f665e}
+html[data-theme=light] .bb-edge.control{stroke:#56606d}
+html[data-theme=light] .bb-edge.failure{stroke:#9b4a36}
+html[data-theme=light] .bb-arrow.data{fill:#6f665e}
+html[data-theme=light] .bb-arrow.control{fill:#56606d}
+html[data-theme=light] .bb-arrow.failure{fill:#9b4a36}
+html[data-theme=light] .bb-label-bg{fill:#fbf9f6;stroke:#d2cbc4}
+html[data-theme=light] .bb-label.data{fill:#2f2a27}
+html[data-theme=light] .bb-label.control{fill:#56606d}
+html[data-theme=light] .bb-label.failure{fill:#9b4a36}
+html[data-theme=light] .bb-flow{stroke:#2f2a27}
+html[data-theme=light] .bb-legend-text{fill:#716961}
+html[data-theme=light] .cat-teal .bb-band,html[data-theme=light] .bb-key.cat-teal{fill:#2f6869;stroke:#2f6869}
+html[data-theme=light] .cat-teal .bb-kicker{fill:#2f6869}
+html[data-theme=light] .bb-zone.cat-teal{fill:#eff0ee;stroke:#8ba9a8}
+html[data-theme=light] .cat-teal .bb-zone-kicker{fill:#2f6869}
+html[data-theme=light] .cat-teal.is-selected .bb-node-box,html[data-theme=light] .cat-teal.is-highlighted .bb-node-box{stroke:#2f6869}
+html[data-theme=light] .cat-rust .bb-band,html[data-theme=light] .bb-key.cat-rust{fill:#b9531f;stroke:#b9531f}
+html[data-theme=light] .cat-rust .bb-kicker{fill:#b9531f}
+html[data-theme=light] .bb-zone.cat-rust{fill:#f7efe9;stroke:#d79e80}
+html[data-theme=light] .cat-rust .bb-zone-kicker{fill:#b9531f}
+html[data-theme=light] .cat-rust.is-selected .bb-node-box,html[data-theme=light] .cat-rust.is-highlighted .bb-node-box{stroke:#b9531f}
+html[data-theme=light] .cat-slate .bb-band,html[data-theme=light] .bb-key.cat-slate{fill:#4f5d6e;stroke:#4f5d6e}
+html[data-theme=light] .cat-slate .bb-kicker{fill:#4f5d6e}
+html[data-theme=light] .bb-zone.cat-slate{fill:#f1f0ee;stroke:#9ca3ab}
+html[data-theme=light] .cat-slate .bb-zone-kicker{fill:#4f5d6e}
+html[data-theme=light] .cat-slate.is-selected .bb-node-box,html[data-theme=light] .cat-slate.is-highlighted .bb-node-box{stroke:#4f5d6e}
+html[data-theme=light] .cat-peach .bb-band,html[data-theme=light] .bb-key.cat-peach{fill:#b4643a;stroke:#b4643a}
+html[data-theme=light] .cat-peach .bb-kicker{fill:#b4643a}
+html[data-theme=light] .bb-zone.cat-peach{fill:#f7f0eb;stroke:#d4a78f}
+html[data-theme=light] .cat-peach .bb-zone-kicker{fill:#b4643a}
+html[data-theme=light] .cat-peach.is-selected .bb-node-box,html[data-theme=light] .cat-peach.is-highlighted .bb-node-box{stroke:#b4643a}
+html[data-theme=light] .cat-olive .bb-band,html[data-theme=light] .bb-key.cat-olive{fill:#5e6334;stroke:#5e6334}
+html[data-theme=light] .cat-olive .bb-kicker{fill:#5e6334}
+html[data-theme=light] .bb-zone.cat-olive{fill:#f2f0ea;stroke:#a5a78b}
+html[data-theme=light] .cat-olive .bb-zone-kicker{fill:#5e6334}
+html[data-theme=light] .cat-olive.is-selected .bb-node-box,html[data-theme=light] .cat-olive.is-highlighted .bb-node-box{stroke:#5e6334}
+html[data-theme=light] .cat-sage .bb-band,html[data-theme=light] .bb-key.cat-sage{fill:#3d8461;stroke:#3d8461}
+html[data-theme=light] .cat-sage .bb-kicker{fill:#3d8461}
+html[data-theme=light] .bb-zone.cat-sage{fill:#f0f2ed;stroke:#93b9a4}
+html[data-theme=light] .cat-sage .bb-zone-kicker{fill:#3d8461}
+html[data-theme=light] .cat-sage.is-selected .bb-node-box,html[data-theme=light] .cat-sage.is-highlighted .bb-node-box{stroke:#3d8461}
+html[data-theme=light] .cat-mustard .bb-band,html[data-theme=light] .bb-key.cat-mustard{fill:#8a7026;stroke:#8a7026}
+html[data-theme=light] .cat-mustard .bb-kicker{fill:#8a7026}
+html[data-theme=light] .bb-zone.cat-mustard{fill:#f4f1ea;stroke:#bdae84}
+html[data-theme=light] .cat-mustard .bb-zone-kicker{fill:#8a7026}
+html[data-theme=light] .cat-mustard.is-selected .bb-node-box,html[data-theme=light] .cat-mustard.is-highlighted .bb-node-box{stroke:#8a7026}
+html[data-theme=light] .cat-mauve .bb-band,html[data-theme=light] .bb-key.cat-mauve{fill:#76536b;stroke:#76536b}
+html[data-theme=light] .cat-mauve .bb-kicker{fill:#76536b}
+html[data-theme=light] .bb-zone.cat-mauve{fill:#f3efee;stroke:#b29eaa}
+html[data-theme=light] .cat-mauve .bb-zone-kicker{fill:#76536b}
+html[data-theme=light] .cat-mauve.is-selected .bb-node-box,html[data-theme=light] .cat-mauve.is-highlighted .bb-node-box{stroke:#76536b}html[data-theme=light] .bb-dot{stroke:#2f2a27}html[data-theme=light] .bb-dot-fill{fill:#2f2a27}html[data-theme=light] .bb-pseudo-fill{fill:#2f2a27}html[data-theme=light] .bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.6}html[data-theme=light] .bb-pseudo-choice{fill:#fffdfa}html[data-theme=light] .bb-finding-bg{fill:#fbf9f6;stroke:#9b4a36;stroke-width:1.2}html[data-theme=light] .bb-finding-text{fill:#9b4a36;font-size:9.5px;font-weight:800;letter-spacing:.4px}html[data-theme=light] .bb-node.has-finding .bb-node-box{stroke:#9b4a36;stroke-width:2}html[data-theme=light] .bb-finding-inline{fill:#9b4a36}html[data-theme=light] .bb-accent{fill:#3d8461}
+html[data-theme=light] .bb-bg-glow-a{fill:url(#bb-light-glow-a)}
+html[data-theme=light] .bb-bg-glow-b{fill:url(#bb-light-glow-b)}
+html[data-theme=light] .bb-bg-dots{fill:url(#bb-light-dots)}
+html[data-theme=light] .bb-node-box{fill:url(#bb-light-card);filter:url(#bb-light-shadow)}
+html[data-theme=light] .bb-node.status-planned .bb-node-box{fill:#fbf9f6;fill-opacity:.55;filter:none}
+html[data-theme=light] .bb-node-bevel{stroke:#fffdfa;stroke-opacity:0}
+html[data-theme=light] .bb-band{filter:none}
+html[data-theme=light] .bb-edge-glow{stroke-opacity:0.08}
+html[data-theme=light] .bb-flow{filter:none}
+html[data-theme=light] .bb-label-bg{fill:#fdfbf8;filter:url(#bb-light-shadow-sm)}
+html[data-theme=light] .bb-meter-hatch{fill:url(#bb-light-hatch)}
+html[data-theme=light] .bb-meter-solid{fill:#2f2a27}
+html[data-theme=light] .bb-meter-track{fill:#efedea;stroke:#d2cbc4}
+html[data-theme=light] .bb-meter-big{fill:#2f2a27}
+html[data-theme=light] .bb-legend-bg{fill:#fdfbf8;stroke:#d2cbc4;stroke-opacity:.6}
+html[data-theme=light] .bb-badge.is-implemented{fill:#2f2a27;stroke:#2f2a27}
+html[data-theme=light] .bb-status.is-implemented .bb-badge-text{fill:#fbf9f6}
+html[data-theme=light] .bb-status.is-implemented .bb-dot-fill{fill:#fbf9f6}
+html[data-theme=light] .bb-zone-floor-grid{stroke:#dad8d5;stroke-opacity:.8}
+html[data-theme=light] .iso-tag-bg{fill:#fffdfa;fill-opacity:.94;stroke:#d2cbc4;stroke-width:1.2;filter:url(#bb-light-shadow-sm)}
+html[data-theme=light] .iso-shadow{fill:#3b2f26;fill-opacity:0.16;filter:url(#bb-light-soft)}
+html[data-theme=light] .cat-teal .bb-node-wash{fill:url(#bb-light-wash-teal)}
+html[data-theme=light] .bb-zone.cat-teal{fill:url(#bb-light-zone-teal)}
+html[data-theme=light] .cat-teal .bb-zone-accent{stroke:#2f6869}
+html[data-theme=light] .cat-teal .iso-roof{fill:url(#bb-light-roof-teal)}
+html[data-theme=light] .cat-teal .iso-left{fill:url(#bb-light-left-teal)}
+html[data-theme=light] .cat-teal .iso-right{fill:url(#bb-light-right-teal)}
+html[data-theme=light] .cat-teal .iso-bevel{stroke:#acc3c3}
+html[data-theme=light] .iso-tag.cat-teal .iso-tag-bg{stroke:#608684}
+html[data-theme=light] .cat-rust .bb-node-wash{fill:url(#bb-light-wash-rust)}
+html[data-theme=light] .bb-zone.cat-rust{fill:url(#bb-light-zone-rust)}
+html[data-theme=light] .cat-rust .bb-zone-accent{stroke:#b9531f}
+html[data-theme=light] .cat-rust .iso-roof{fill:url(#bb-light-roof-rust)}
+html[data-theme=light] .cat-rust .iso-left{fill:url(#bb-light-left-rust)}
+html[data-theme=light] .cat-rust .iso-right{fill:url(#bb-light-right-rust)}
+html[data-theme=light] .cat-rust .iso-bevel{stroke:#e3baa5}
+html[data-theme=light] .iso-tag.cat-rust .iso-tag-bg{stroke:#c17751}
+html[data-theme=light] .cat-slate .bb-node-wash{fill:url(#bb-light-wash-slate)}
+html[data-theme=light] .bb-zone.cat-slate{fill:url(#bb-light-zone-slate)}
+html[data-theme=light] .cat-slate .bb-zone-accent{stroke:#4f5d6e}
+html[data-theme=light] .cat-slate .iso-roof{fill:url(#bb-light-roof-slate)}
+html[data-theme=light] .cat-slate .iso-left{fill:url(#bb-light-left-slate)}
+html[data-theme=light] .cat-slate .iso-right{fill:url(#bb-light-right-slate)}
+html[data-theme=light] .cat-slate .iso-bevel{stroke:#b9bec5}
+html[data-theme=light] .iso-tag.cat-slate .iso-tag-bg{stroke:#767e88}
+html[data-theme=light] .cat-peach .bb-node-wash{fill:url(#bb-light-wash-peach)}
+html[data-theme=light] .bb-zone.cat-peach{fill:url(#bb-light-zone-peach)}
+html[data-theme=light] .cat-peach .bb-zone-accent{stroke:#b4643a}
+html[data-theme=light] .cat-peach .iso-roof{fill:url(#bb-light-roof-peach)}
+html[data-theme=light] .cat-peach .iso-left{fill:url(#bb-light-left-peach)}
+html[data-theme=light] .cat-peach .iso-right{fill:url(#bb-light-right-peach)}
+html[data-theme=light] .cat-peach .iso-bevel{stroke:#e1c1b0}
+html[data-theme=light] .iso-tag.cat-peach .iso-tag-bg{stroke:#bd8363}
+html[data-theme=light] .cat-olive .bb-node-wash{fill:url(#bb-light-wash-olive)}
+html[data-theme=light] .bb-zone.cat-olive{fill:url(#bb-light-zone-olive)}
+html[data-theme=light] .cat-olive .bb-zone-accent{stroke:#5e6334}
+html[data-theme=light] .cat-olive .iso-roof{fill:url(#bb-light-roof-olive)}
+html[data-theme=light] .cat-olive .iso-left{fill:url(#bb-light-left-olive)}
+html[data-theme=light] .cat-olive .iso-right{fill:url(#bb-light-right-olive)}
+html[data-theme=light] .cat-olive .iso-bevel{stroke:#bfc1ae}
+html[data-theme=light] .iso-tag.cat-olive .iso-tag-bg{stroke:#81825f}
+html[data-theme=light] .cat-sage .bb-node-wash{fill:url(#bb-light-wash-sage)}
+html[data-theme=light] .bb-zone.cat-sage{fill:url(#bb-light-zone-sage)}
+html[data-theme=light] .cat-sage .bb-zone-accent{stroke:#3d8461}
+html[data-theme=light] .cat-sage .iso-roof{fill:url(#bb-light-roof-sage)}
+html[data-theme=light] .cat-sage .iso-left{fill:url(#bb-light-left-sage)}
+html[data-theme=light] .cat-sage .iso-right{fill:url(#bb-light-right-sage)}
+html[data-theme=light] .cat-sage .iso-bevel{stroke:#b1cec0}
+html[data-theme=light] .iso-tag.cat-sage .iso-tag-bg{stroke:#6a997f}
+html[data-theme=light] .cat-mustard .bb-node-wash{fill:url(#bb-light-wash-mustard)}
+html[data-theme=light] .bb-zone.cat-mustard{fill:url(#bb-light-zone-mustard)}
+html[data-theme=light] .cat-mustard .bb-zone-accent{stroke:#8a7026}
+html[data-theme=light] .cat-mustard .iso-roof{fill:url(#bb-light-roof-mustard)}
+html[data-theme=light] .cat-mustard .iso-left{fill:url(#bb-light-left-mustard)}
+html[data-theme=light] .cat-mustard .iso-right{fill:url(#bb-light-right-mustard)}
+html[data-theme=light] .cat-mustard .iso-bevel{stroke:#d0c6a8}
+html[data-theme=light] .iso-tag.cat-mustard .iso-tag-bg{stroke:#a08b55}
+html[data-theme=light] .cat-mauve .bb-node-wash{fill:url(#bb-light-wash-mauve)}
+html[data-theme=light] .bb-zone.cat-mauve{fill:url(#bb-light-zone-mauve)}
+html[data-theme=light] .cat-mauve .bb-zone-accent{stroke:#76536b}
+html[data-theme=light] .cat-mauve .iso-roof{fill:url(#bb-light-roof-mauve)}
+html[data-theme=light] .cat-mauve .iso-left{fill:url(#bb-light-left-mauve)}
+html[data-theme=light] .cat-mauve .iso-right{fill:url(#bb-light-right-mauve)}
+html[data-theme=light] .cat-mauve .iso-bevel{stroke:#c8bac4}
+html[data-theme=light] .iso-tag.cat-mauve .iso-tag-bg{stroke:#927786}html[data-theme=dark] .iso-edge-line{stroke:#5c564f}
+html[data-theme=dark] .iso-tag-halo{stroke:#1a1816}
+html[data-theme=dark] .iso-hatch line{stroke:#ead1b5}
+html[data-theme=dark] .cat-teal .iso-roof{fill:#3a4745;stroke:#3d6060}
+html[data-theme=dark] .cat-teal .iso-left{fill:#2e4848;stroke:#3d6060}
+html[data-theme=dark] .cat-teal .iso-right{fill:#273736;stroke:#3d6060}
 html[data-theme=dark] .cat-teal.status-planned .iso-face{stroke:#3f6f70}
-html[data-theme=dark] .cat-rust .bb-mark,html[data-theme=dark] .bb-mark.cat-rust{fill:#c28568}
-html[data-theme=dark] .cat-rust .bb-kicker,html[data-theme=dark] .cat-rust .bb-zone-kicker{fill:#be876d}
-html[data-theme=dark] .cat-rust .bb-node-box{fill:#40342c;stroke:#5f473b}
-html[data-theme=dark] .cat-rust.status-planned .bb-node-box{fill:none;stroke:#66493b}
-html[data-theme=dark] .bb-zone.cat-rust{fill:#26201c;stroke:#46342b}
-html[data-theme=dark] .cat-rust .iso-roof{fill:#b79c8f;stroke:#705548}
-html[data-theme=dark] .cat-rust .iso-left{fill:#a48170;stroke:#705548}
-html[data-theme=dark] .cat-rust .iso-right{fill:#8c6a5a;stroke:#705548}
+html[data-theme=dark] .cat-rust .iso-roof{fill:#704a37;stroke:#bb673f}
+html[data-theme=dark] .cat-rust .iso-left{fill:#8b4d2f;stroke:#bb673f}
+html[data-theme=dark] .cat-rust .iso-right{fill:#643b26;stroke:#bb673f}
 html[data-theme=dark] .cat-rust.status-planned .iso-face{stroke:#e77843}
-html[data-theme=dark] .cat-slate .bb-mark,html[data-theme=dark] .bb-mark.cat-slate{fill:#7a92ae}
-html[data-theme=dark] .cat-slate .bb-kicker,html[data-theme=dark] .cat-slate .bb-zone-kicker{fill:#8592a5}
-html[data-theme=dark] .cat-slate .bb-node-box{fill:#343638;stroke:#454c54}
-html[data-theme=dark] .cat-slate.status-planned .bb-node-box{fill:none;stroke:#454f5a}
-html[data-theme=dark] .bb-zone.cat-slate{fill:#212121;stroke:#33383e}
-html[data-theme=dark] .cat-slate .iso-roof{fill:#96a2b0;stroke:#4f5b69}
-html[data-theme=dark] .cat-slate .iso-left{fill:#79889a;stroke:#4f5b69}
-html[data-theme=dark] .cat-slate .iso-right{fill:#637183;stroke:#4f5b69}
+html[data-theme=dark] .cat-slate .iso-roof{fill:#45474b;stroke:#57616e}
+html[data-theme=dark] .cat-slate .iso-left{fill:#414851;stroke:#57616e}
+html[data-theme=dark] .cat-slate .iso-right{fill:#34383d;stroke:#57616e}
 html[data-theme=dark] .cat-slate.status-planned .iso-face{stroke:#617082}
-html[data-theme=dark] .cat-peach .bb-mark,html[data-theme=dark] .bb-mark.cat-peach{fill:#ca9a7d}
-html[data-theme=dark] .cat-peach .bb-kicker,html[data-theme=dark] .cat-peach .bb-zone-kicker{fill:#c5987e}
-html[data-theme=dark] .cat-peach .bb-node-box{fill:#413730;stroke:#624e42}
-html[data-theme=dark] .cat-peach.status-planned .bb-node-box{fill:none;stroke:#695344}
-html[data-theme=dark] .bb-zone.cat-peach{fill:#26211d;stroke:#483a31}
-html[data-theme=dark] .cat-peach .iso-roof{fill:#b79e8f;stroke:#705748}
-html[data-theme=dark] .cat-peach .iso-left{fill:#a48370;stroke:#705748}
-html[data-theme=dark] .cat-peach .iso-right{fill:#8c6c5a;stroke:#705748}
+html[data-theme=dark] .cat-peach .iso-roof{fill:#725543;stroke:#c1815b}
+html[data-theme=dark] .cat-peach .iso-left{fill:#8f6044;stroke:#c1815b}
+html[data-theme=dark] .cat-peach .iso-right{fill:#664734;stroke:#c1815b}
 html[data-theme=dark] .cat-peach.status-planned .iso-face{stroke:#ee9b69}
-html[data-theme=dark] .cat-olive .bb-mark,html[data-theme=dark] .bb-mark.cat-olive{fill:#a5ae7a}
-html[data-theme=dark] .cat-olive .bb-kicker,html[data-theme=dark] .cat-olive .bb-zone-kicker{fill:#a7a87b}
-html[data-theme=dark] .cat-olive .bb-node-box{fill:#3b3a2f;stroke:#545641}
-html[data-theme=dark] .cat-olive.status-planned .bb-node-box{fill:none;stroke:#595c43}
-html[data-theme=dark] .bb-zone.cat-olive{fill:#24231d;stroke:#3e3f30}
-html[data-theme=dark] .cat-olive .iso-roof{fill:#acb096;stroke:#65694f}
-html[data-theme=dark] .cat-olive .iso-left{fill:#959a79;stroke:#65694f}
-html[data-theme=dark] .cat-olive .iso-right{fill:#7e8363;stroke:#65694f}
+html[data-theme=dark] .cat-olive .iso-roof{fill:#49483c;stroke:#61634b}
+html[data-theme=dark] .cat-olive .iso-left{fill:#484a38;stroke:#61634b}
+html[data-theme=dark] .cat-olive .iso-right{fill:#38392c;stroke:#61634b}
 html[data-theme=dark] .cat-olive.status-planned .iso-face{stroke:#6e7354}
-html[data-theme=dark] .cat-sage .bb-mark,html[data-theme=dark] .bb-mark.cat-sage{fill:#7fbd9e}
-html[data-theme=dark] .cat-sage .bb-kicker,html[data-theme=dark] .cat-sage .bb-zone-kicker{fill:#89b498}
-html[data-theme=dark] .cat-sage .bb-node-box{fill:#353c35;stroke:#475b4e}
-html[data-theme=dark] .cat-sage.status-planned .bb-node-box{fill:none;stroke:#476253}
-html[data-theme=dark] .bb-zone.cat-sage{fill:#212420;stroke:#344339}
-html[data-theme=dark] .cat-sage .iso-roof{fill:#8fb7a3;stroke:#48705c}
-html[data-theme=dark] .cat-sage .iso-left{fill:#70a48a;stroke:#48705c}
-html[data-theme=dark] .cat-sage .iso-right{fill:#5a8c73;stroke:#48705c}
+html[data-theme=dark] .cat-sage .iso-roof{fill:#4d6254;stroke:#699f83}
+html[data-theme=dark] .cat-sage .iso-left{fill:#4e7661;stroke:#699f83}
+html[data-theme=dark] .cat-sage .iso-right{fill:#3c5647;stroke:#699f83}
 html[data-theme=dark] .cat-sage.status-planned .iso-face{stroke:#79c39e}
-html[data-theme=dark] .cat-mustard .bb-mark,html[data-theme=dark] .bb-mark.cat-mustard{fill:#c2aa6a}
-html[data-theme=dark] .cat-mustard .bb-kicker,html[data-theme=dark] .cat-mustard .bb-zone-kicker{fill:#bea56e}
-html[data-theme=dark] .cat-mustard .bb-node-box{fill:#40392d;stroke:#5f543b}
-html[data-theme=dark] .cat-mustard.status-planned .bb-node-box{fill:none;stroke:#665a3c}
-html[data-theme=dark] .bb-zone.cat-mustard{fill:#26221c;stroke:#463e2c}
-html[data-theme=dark] .cat-mustard .iso-roof{fill:#b7ad8f;stroke:#706548}
-html[data-theme=dark] .cat-mustard .iso-left{fill:#a49670;stroke:#706548}
-html[data-theme=dark] .cat-mustard .iso-right{fill:#8c7e5a;stroke:#706548}
+html[data-theme=dark] .cat-mustard .iso-roof{fill:#685c3f;stroke:#a99153}
+html[data-theme=dark] .cat-mustard .iso-left{fill:#7d6c3e;stroke:#a99153}
+html[data-theme=dark] .cat-mustard .iso-right{fill:#5b4f30;stroke:#a99153}
 html[data-theme=dark] .cat-mustard.status-planned .iso-face{stroke:#ceb05e}
-html[data-theme=dark] .cat-mauve .bb-mark,html[data-theme=dark] .bb-mark.cat-mauve{fill:#ae7a9d}
-html[data-theme=dark] .cat-mauve .bb-kicker,html[data-theme=dark] .cat-mauve .bb-zone-kicker{fill:#ae7e97}
-html[data-theme=dark] .cat-mauve .bb-node-box{fill:#3d3235;stroke:#58434e}
-html[data-theme=dark] .cat-mauve.status-planned .bb-node-box{fill:none;stroke:#5d4453}
-html[data-theme=dark] .bb-zone.cat-mauve{fill:#241f1f;stroke:#403139}
-html[data-theme=dark] .cat-mauve .iso-roof{fill:#b196a8;stroke:#694e61}
-html[data-theme=dark] .cat-mauve .iso-left{fill:#9b7890;stroke:#694e61}
-html[data-theme=dark] .cat-mauve .iso-right{fill:#846279;stroke:#694e61}
+html[data-theme=dark] .cat-mauve .iso-roof{fill:#4c3e44;stroke:#674b5d}
+html[data-theme=dark] .cat-mauve .iso-left{fill:#4d3845;stroke:#674b5d}
+html[data-theme=dark] .cat-mauve .iso-right{fill:#3b2d35;stroke:#674b5d}
 html[data-theme=dark] .cat-mauve.status-planned .iso-face{stroke:#76536b}
-html[data-theme=dark] .iso-shadow{fill:#000000;fill-opacity:0.32}
-html[data-theme=dark] .iso-hatch line{stroke:#1a1816}
-html[data-theme=dark] .iso-tag-bg,html[data-theme=dark] .iso-label-bg{fill:#1a1816;fill-opacity:.9}
-html[data-theme=dark] .bb-label.plain{stroke:none}
-html[data-theme=dark] .bb-node:not([class*=cat-]) .iso-face{fill:#272421;stroke:#35302b}html[data-theme=light] .iso-tag-bg,html[data-theme=light] .iso-label-bg{fill:#fbf9f6;fill-opacity:1}
-html[data-theme=light] .iso-tag .bb-node-title,html[data-theme=light] .iso-tag .bb-kicker,html[data-theme=light] .bb-edge-label .bb-label{fill:#2f2a27}
-html[data-theme=light] .bb-node.status-partial .iso-hatch line{stroke:#2f2a27;opacity:.9}
-html[data-theme=light].workflow-active .bb-node:not(.is-dimmed) .iso-roof{stroke:#2f2a27;stroke-width:4}
-html[data-theme=dark] .iso-tag-bg,html[data-theme=dark] .iso-label-bg{fill:#1a1816;fill-opacity:1}
-html[data-theme=dark] .iso-tag .bb-node-title,html[data-theme=dark] .iso-tag .bb-kicker,html[data-theme=dark] .bb-edge-label .bb-label{fill:#ead1b5}
-html[data-theme=dark] .bb-node.status-partial .iso-hatch line{stroke:#ead1b5;opacity:.9}
-html[data-theme=dark].workflow-active .bb-node:not(.is-dimmed) .iso-roof{stroke:#ead1b5;stroke-width:4}
-</style>
-<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
-<rect class="bb-canvas" x="0" y="0" width="677" height="649"/>
-<text class="bb-title" x="48" y="100">Flock composition</text>
-<polygon class="iso-shadow" points="172.6,235 380.4,355 267.8,420 60,300"/>
-<polygon class="iso-shadow" points="432.4,385 640.2,505 527.7,570 319.8,450"/>
+html[data-theme=dark] .bb-node:not([class*=cat-]) .iso-roof{fill:#4a4540;stroke:#5c564f}
+html[data-theme=dark] .bb-node:not([class*=cat-]) .iso-left,html[data-theme=dark] .bb-node:not([class*=cat-]) .iso-right{fill:#383431;stroke:#5c564f}html[data-theme=dark] .bb-canvas{fill:#1a1816}
+html[data-theme=dark] .bb-title{fill:#ead1b5}
+html[data-theme=dark] .bb-subtitle,html[data-theme=dark] .bb-zone-sub,html[data-theme=dark] .bb-copy{fill:#b09080}
+html[data-theme=dark] .bb-zone-title{fill:#ead1b5}
+html[data-theme=dark] .bb-node-box{fill:#383431;stroke:#5c564f}
+html[data-theme=dark] .bb-node-title{fill:#ead1b5}
+html[data-theme=dark] .bb-hint{fill:#b09080}
+html[data-theme=dark] .bb-badge{fill:#4a4540;stroke:#5c564f}
+html[data-theme=dark] .bb-badge-text{fill:#ead1b5}
+html[data-theme=dark] .bb-edge.data{stroke:#c9b49c}
+html[data-theme=dark] .bb-edge.control{stroke:#8d9aab}
+html[data-theme=dark] .bb-edge.failure{stroke:#c27a5c}
+html[data-theme=dark] .bb-arrow.data{fill:#c9b49c}
+html[data-theme=dark] .bb-arrow.control{fill:#8d9aab}
+html[data-theme=dark] .bb-arrow.failure{fill:#c27a5c}
+html[data-theme=dark] .bb-label-bg{fill:#1a1816;stroke:#5c564f}
+html[data-theme=dark] .bb-label.data{fill:#ead1b5}
+html[data-theme=dark] .bb-label.control{fill:#8d9aab}
+html[data-theme=dark] .bb-label.failure{fill:#c27a5c}
+html[data-theme=dark] .bb-flow{stroke:#ead1b5}
+html[data-theme=dark] .bb-legend-text{fill:#b09080}
+html[data-theme=dark] .cat-teal .bb-band,html[data-theme=dark] .bb-key.cat-teal{fill:#3f6f70;stroke:#3f6f70}
+html[data-theme=dark] .cat-teal .bb-kicker{fill:#728c85}
+html[data-theme=dark] .bb-zone.cat-teal{fill:#1d1e1c;stroke:#2b3f3f}
+html[data-theme=dark] .cat-teal .bb-zone-kicker{fill:#728c85}
+html[data-theme=dark] .cat-teal.is-selected .bb-node-box,html[data-theme=dark] .cat-teal.is-highlighted .bb-node-box{stroke:#3f6f70}
+html[data-theme=dark] .cat-rust .bb-band,html[data-theme=dark] .bb-key.cat-rust{fill:#e77843;stroke:#e77843}
+html[data-theme=dark] .cat-rust .bb-kicker{fill:#e89365}
+html[data-theme=dark] .bb-zone.cat-rust{fill:#281f19;stroke:#76432a}
+html[data-theme=dark] .cat-rust .bb-zone-kicker{fill:#e89365}
+html[data-theme=dark] .cat-rust.is-selected .bb-node-box,html[data-theme=dark] .cat-rust.is-highlighted .bb-node-box{stroke:#e77843}
+html[data-theme=dark] .cat-slate .bb-band,html[data-theme=dark] .bb-key.cat-slate{fill:#617082;stroke:#617082}
+html[data-theme=dark] .cat-slate .bb-kicker{fill:#8a8d91}
+html[data-theme=dark] .bb-zone.cat-slate{fill:#1f1e1e;stroke:#3a4047}
+html[data-theme=dark] .cat-slate .bb-zone-kicker{fill:#8a8d91}
+html[data-theme=dark] .cat-slate.is-selected .bb-node-box,html[data-theme=dark] .cat-slate.is-highlighted .bb-node-box{stroke:#617082}
+html[data-theme=dark] .cat-peach .bb-band,html[data-theme=dark] .bb-key.cat-peach{fill:#ee9b69;stroke:#ee9b69}
+html[data-theme=dark] .cat-peach .bb-kicker{fill:#edab80}
+html[data-theme=dark] .bb-zone.cat-peach{fill:#29211c;stroke:#79533b}
+html[data-theme=dark] .cat-peach .bb-zone-kicker{fill:#edab80}
+html[data-theme=dark] .cat-peach.is-selected .bb-node-box,html[data-theme=dark] .cat-peach.is-highlighted .bb-node-box{stroke:#ee9b69}
+html[data-theme=dark] .cat-olive .bb-band,html[data-theme=dark] .bb-key.cat-olive{fill:#6e7354;stroke:#6e7354}
+html[data-theme=dark] .cat-olive .bb-kicker{fill:#938f71}
+html[data-theme=dark] .bb-zone.cat-olive{fill:#201e1a;stroke:#404132}
+html[data-theme=dark] .cat-olive .bb-zone-kicker{fill:#938f71}
+html[data-theme=dark] .cat-olive.is-selected .bb-node-box,html[data-theme=dark] .cat-olive.is-highlighted .bb-node-box{stroke:#6e7354}
+html[data-theme=dark] .cat-sage .bb-band,html[data-theme=dark] .bb-key.cat-sage{fill:#79c39e;stroke:#79c39e}
+html[data-theme=dark] .cat-sage .bb-kicker{fill:#9bc7a5}
+html[data-theme=dark] .bb-zone.cat-sage{fill:#212420;stroke:#456553}
+html[data-theme=dark] .cat-sage .bb-zone-kicker{fill:#9bc7a5}
+html[data-theme=dark] .cat-sage.is-selected .bb-node-box,html[data-theme=dark] .cat-sage.is-highlighted .bb-node-box{stroke:#79c39e}
+html[data-theme=dark] .cat-mustard .bb-band,html[data-theme=dark] .bb-key.cat-mustard{fill:#ceb05e;stroke:#ceb05e}
+html[data-theme=dark] .cat-mustard .bb-kicker{fill:#d6ba78}
+html[data-theme=dark] .bb-zone.cat-mustard{fill:#27231b;stroke:#6b5c36}
+html[data-theme=dark] .cat-mustard .bb-zone-kicker{fill:#d6ba78}
+html[data-theme=dark] .cat-mustard.is-selected .bb-node-box,html[data-theme=dark] .cat-mustard.is-highlighted .bb-node-box{stroke:#ceb05e}
+html[data-theme=dark] .cat-mauve .bb-band,html[data-theme=dark] .bb-key.cat-mauve{fill:#76536b;stroke:#76536b}
+html[data-theme=dark] .cat-mauve .bb-kicker{fill:#997981}
+html[data-theme=dark] .bb-zone.cat-mauve{fill:#201c1c;stroke:#43333c}
+html[data-theme=dark] .cat-mauve .bb-zone-kicker{fill:#997981}
+html[data-theme=dark] .cat-mauve.is-selected .bb-node-box,html[data-theme=dark] .cat-mauve.is-highlighted .bb-node-box{stroke:#76536b}html[data-theme=dark] .bb-dot{stroke:#ead1b5}html[data-theme=dark] .bb-dot-fill{fill:#ead1b5}html[data-theme=dark] .bb-pseudo-fill{fill:#ead1b5}html[data-theme=dark] .bb-pseudo-ring{fill:#1a1816;stroke:#ead1b5;stroke-width:1.6}html[data-theme=dark] .bb-pseudo-choice{fill:#383431}html[data-theme=dark] .bb-finding-bg{fill:#1a1816;stroke:#c27a5c;stroke-width:1.2}html[data-theme=dark] .bb-finding-text{fill:#c27a5c;font-size:9.5px;font-weight:800;letter-spacing:.4px}html[data-theme=dark] .bb-node.has-finding .bb-node-box{stroke:#c27a5c;stroke-width:2}html[data-theme=dark] .bb-finding-inline{fill:#c27a5c}html[data-theme=dark] .bb-accent{fill:#79c39e}
+html[data-theme=dark] .bb-bg-glow-a{fill:url(#bb-dark-glow-a)}
+html[data-theme=dark] .bb-bg-glow-b{fill:url(#bb-dark-glow-b)}
+html[data-theme=dark] .bb-bg-dots{fill:url(#bb-dark-dots)}
+html[data-theme=dark] .bb-node-box{fill:url(#bb-dark-card);filter:url(#bb-dark-shadow)}
+html[data-theme=dark] .bb-node.status-planned .bb-node-box{fill:#1a1816;fill-opacity:.55;filter:none}
+html[data-theme=dark] .bb-node-bevel{stroke:#544d46;stroke-opacity:1}
+html[data-theme=dark] .bb-band{filter:url(#bb-dark-glow)}
+html[data-theme=dark] .bb-edge-glow{stroke-opacity:0.16}
+html[data-theme=dark] .bb-flow{filter:url(#bb-dark-glow)}
+html[data-theme=dark] .bb-label-bg{fill:#34302d;filter:url(#bb-dark-shadow-sm)}
+html[data-theme=dark] .bb-meter-hatch{fill:url(#bb-dark-hatch)}
+html[data-theme=dark] .bb-meter-solid{fill:#ead1b5}
+html[data-theme=dark] .bb-meter-track{fill:#292521;stroke:#5c564f}
+html[data-theme=dark] .bb-meter-big{fill:#ead1b5}
+html[data-theme=dark] .bb-legend-bg{fill:#282522;stroke:#5c564f;stroke-opacity:.6}
+html[data-theme=dark] .bb-badge.is-implemented{fill:#ead1b5;stroke:#ead1b5}
+html[data-theme=dark] .bb-status.is-implemented .bb-badge-text{fill:#1a1816}
+html[data-theme=dark] .bb-status.is-implemented .bb-dot-fill{fill:#1a1816}
+html[data-theme=dark] .bb-zone-floor-grid{stroke:#3b362f;stroke-opacity:.8}
+html[data-theme=dark] .iso-tag-bg{fill:#312d2a;fill-opacity:.94;stroke:#5c564f;stroke-width:1.2;filter:url(#bb-dark-shadow-sm)}
+html[data-theme=dark] .iso-shadow{fill:#000000;fill-opacity:0.5;filter:url(#bb-dark-soft)}
+html[data-theme=dark] .cat-teal .bb-node-wash{fill:url(#bb-dark-wash-teal)}
+html[data-theme=dark] .bb-zone.cat-teal{fill:url(#bb-dark-zone-teal)}
+html[data-theme=dark] .cat-teal .bb-zone-accent{stroke:#3f6f70}
+html[data-theme=dark] .cat-teal .iso-roof{fill:url(#bb-dark-roof-teal)}
+html[data-theme=dark] .cat-teal .iso-left{fill:url(#bb-dark-left-teal)}
+html[data-theme=dark] .cat-teal .iso-right{fill:url(#bb-dark-right-teal)}
+html[data-theme=dark] .cat-teal .iso-bevel{stroke:#95b0b0}
+html[data-theme=dark] .iso-tag.cat-teal .iso-tag-bg{stroke:#486866}
+html[data-theme=dark] .cat-rust .bb-node-wash{fill:url(#bb-dark-wash-rust)}
+html[data-theme=dark] .bb-zone.cat-rust{fill:url(#bb-dark-zone-rust)}
+html[data-theme=dark] .cat-rust .bb-zone-accent{stroke:#e77843}
+html[data-theme=dark] .cat-rust .iso-roof{fill:url(#bb-dark-roof-rust)}
+html[data-theme=dark] .cat-rust .iso-left{fill:url(#bb-dark-left-rust)}
+html[data-theme=dark] .cat-rust .iso-right{fill:url(#bb-dark-right-rust)}
+html[data-theme=dark] .cat-rust .iso-bevel{stroke:#f2b598}
+html[data-theme=dark] .iso-tag.cat-rust .iso-tag-bg{stroke:#bd6e47}
+html[data-theme=dark] .cat-slate .bb-node-wash{fill:url(#bb-dark-wash-slate)}
+html[data-theme=dark] .bb-zone.cat-slate{fill:url(#bb-dark-zone-slate)}
+html[data-theme=dark] .cat-slate .bb-zone-accent{stroke:#617082}
+html[data-theme=dark] .cat-slate .iso-roof{fill:url(#bb-dark-roof-slate)}
+html[data-theme=dark] .cat-slate .iso-left{fill:url(#bb-dark-left-slate)}
+html[data-theme=dark] .cat-slate .iso-right{fill:url(#bb-dark-right-slate)}
+html[data-theme=dark] .cat-slate .iso-bevel{stroke:#a8b0ba}
+html[data-theme=dark] .iso-tag.cat-slate .iso-tag-bg{stroke:#606873}
+html[data-theme=dark] .cat-peach .bb-node-wash{fill:url(#bb-dark-wash-peach)}
+html[data-theme=dark] .bb-zone.cat-peach{fill:url(#bb-dark-zone-peach)}
+html[data-theme=dark] .cat-peach .bb-zone-accent{stroke:#ee9b69}
+html[data-theme=dark] .cat-peach .iso-roof{fill:url(#bb-dark-roof-peach)}
+html[data-theme=dark] .cat-peach .iso-left{fill:url(#bb-dark-left-peach)}
+html[data-theme=dark] .cat-peach .iso-right{fill:url(#bb-dark-right-peach)}
+html[data-theme=dark] .cat-peach .iso-bevel{stroke:#f6c8ad}
+html[data-theme=dark] .iso-tag.cat-peach .iso-tag-bg{stroke:#c28661}
+html[data-theme=dark] .cat-olive .bb-node-wash{fill:url(#bb-dark-wash-olive)}
+html[data-theme=dark] .bb-zone.cat-olive{fill:url(#bb-dark-zone-olive)}
+html[data-theme=dark] .cat-olive .bb-zone-accent{stroke:#6e7354}
+html[data-theme=dark] .cat-olive .iso-roof{fill:url(#bb-dark-roof-olive)}
+html[data-theme=dark] .cat-olive .iso-left{fill:url(#bb-dark-left-olive)}
+html[data-theme=dark] .cat-olive .iso-right{fill:url(#bb-dark-right-olive)}
+html[data-theme=dark] .cat-olive .iso-bevel{stroke:#afb2a1}
+html[data-theme=dark] .iso-tag.cat-olive .iso-tag-bg{stroke:#696a53}
+html[data-theme=dark] .cat-sage .bb-node-wash{fill:url(#bb-dark-wash-sage)}
+html[data-theme=dark] .bb-zone.cat-sage{fill:url(#bb-dark-zone-sage)}
+html[data-theme=dark] .cat-sage .bb-zone-accent{stroke:#79c39e}
+html[data-theme=dark] .cat-sage .iso-roof{fill:url(#bb-dark-roof-sage)}
+html[data-theme=dark] .cat-sage .iso-left{fill:url(#bb-dark-left-sage)}
+html[data-theme=dark] .cat-sage .iso-right{fill:url(#bb-dark-right-sage)}
+html[data-theme=dark] .cat-sage .iso-bevel{stroke:#b5deca}
+html[data-theme=dark] .iso-tag.cat-sage .iso-tag-bg{stroke:#70a286}
+html[data-theme=dark] .cat-mustard .bb-node-wash{fill:url(#bb-dark-wash-mustard)}
+html[data-theme=dark] .bb-zone.cat-mustard{fill:url(#bb-dark-zone-mustard)}
+html[data-theme=dark] .cat-mustard .bb-zone-accent{stroke:#ceb05e}
+html[data-theme=dark] .cat-mustard .iso-roof{fill:url(#bb-dark-roof-mustard)}
+html[data-theme=dark] .cat-mustard .iso-left{fill:url(#bb-dark-left-mustard)}
+html[data-theme=dark] .cat-mustard .iso-right{fill:url(#bb-dark-right-mustard)}
+html[data-theme=dark] .cat-mustard .iso-bevel{stroke:#e4d4a6}
+html[data-theme=dark] .iso-tag.cat-mustard .iso-tag-bg{stroke:#ac955a}
+html[data-theme=dark] .cat-mauve .bb-node-wash{fill:url(#bb-dark-wash-mauve)}
+html[data-theme=dark] .bb-zone.cat-mauve{fill:url(#bb-dark-zone-mauve)}
+html[data-theme=dark] .cat-mauve .bb-zone-accent{stroke:#76536b}
+html[data-theme=dark] .cat-mauve .iso-roof{fill:url(#bb-dark-roof-mauve)}
+html[data-theme=dark] .cat-mauve .iso-left{fill:url(#bb-dark-left-mauve)}
+html[data-theme=dark] .cat-mauve .iso-right{fill:url(#bb-dark-right-mauve)}
+html[data-theme=dark] .cat-mauve .iso-bevel{stroke:#b4a0ae}
+html[data-theme=dark] .iso-tag.cat-mauve .iso-tag-bg{stroke:#6e5463}</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="8.5" markerHeight="8.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 0.6 L 10 5 L 0 9.4 L 2.6 5 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="8.5" markerHeight="8.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 0.6 L 10 5 L 0 9.4 L 2.6 5 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="8.5" markerHeight="8.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 0.6 L 10 5 L 0 9.4 L 2.6 5 z"/></marker></defs><defs><radialGradient id="bb-light-glow-a" cx="0.12" cy="0" r="0.75"><stop offset="0" stop-color="#3d8461" stop-opacity="0.1"/><stop offset="1" stop-color="#3d8461" stop-opacity="0"/></radialGradient><radialGradient id="bb-light-glow-b" cx="0.95" cy="1" r="0.7"><stop offset="0" stop-color="#b9531f" stop-opacity="0.07"/><stop offset="1" stop-color="#b9531f" stop-opacity="0"/></radialGradient><pattern id="bb-light-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="1" fill="#e3e0dd"/></pattern><pattern id="bb-light-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fbf9f6"/><rect width="2.4" height="6" fill="#2f2a27"/></pattern><linearGradient id="bb-light-card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffdfa" stop-opacity="1"/><stop offset="1" stop-color="#fffdfa" stop-opacity="1"/></linearGradient><filter id="bb-light-shadow" x="-25%" y="-25%" width="150%" height="170%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="10"/><feOffset dy="8" result="o"/><feFlood flood-color="#3b2f26" flood-opacity="0.13"/><feComposite in2="o" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-light-shadow-sm" x="-25%" y="-25%" width="150%" height="170%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="4"/><feOffset dy="3" result="o"/><feFlood flood-color="#3b2f26" flood-opacity="0.1"/><feComposite in2="o" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-light-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-light-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter><linearGradient id="bb-light-wash-teal" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2f6869" stop-opacity="0.11"/><stop offset="0.55" stop-color="#2f6869" stop-opacity="0"/></linearGradient><linearGradient id="bb-light-zone-teal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e5e9e6" stop-opacity="1"/><stop offset="0.45" stop-color="#f1f2ef" stop-opacity="1"/><stop offset="1" stop-color="#f5f5f2" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-roof-teal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c1d0cf" stop-opacity="1"/><stop offset="1" stop-color="#d5dfdd" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-left-teal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ba9a8" stop-opacity="1"/><stop offset="1" stop-color="#a5bcbb" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-right-teal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b2c5c3" stop-opacity="1"/><stop offset="1" stop-color="#c6d3d1" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-wash-rust" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b9531f" stop-opacity="0.11"/><stop offset="0.55" stop-color="#b9531f" stop-opacity="0"/></linearGradient><linearGradient id="bb-light-zone-rust" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4e7de" stop-opacity="1"/><stop offset="0.45" stop-color="#f8f1eb" stop-opacity="1"/><stop offset="1" stop-color="#f9f4f0" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-roof-rust" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eacab8" stop-opacity="1"/><stop offset="1" stop-color="#f1dbce" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-left-rust" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d79e80" stop-opacity="1"/><stop offset="1" stop-color="#dfb39c" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-right-rust" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3bda9" stop-opacity="1"/><stop offset="1" stop-color="#eacebe" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-wash-slate" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4f5d6e" stop-opacity="0.11"/><stop offset="0.55" stop-color="#4f5d6e" stop-opacity="0"/></linearGradient><linearGradient id="bb-light-zone-slate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8e8e7" stop-opacity="1"/><stop offset="0.45" stop-color="#f2f1ef" stop-opacity="1"/><stop offset="1" stop-color="#f6f4f2" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-roof-slate" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#cacdd0" stop-opacity="1"/><stop offset="1" stop-color="#dcddde" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-left-slate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9ca3ab" stop-opacity="1"/><stop offset="1" stop-color="#b3b7bd" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-right-slate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bdc1c5" stop-opacity="1"/><stop offset="1" stop-color="#ced0d3" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-wash-peach" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b4643a" stop-opacity="0.11"/><stop offset="0.55" stop-color="#b4643a" stop-opacity="0"/></linearGradient><linearGradient id="bb-light-zone-peach" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3e9e1" stop-opacity="1"/><stop offset="0.45" stop-color="#f7f2ed" stop-opacity="1"/><stop offset="1" stop-color="#f9f5f0" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-roof-peach" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9cfc0" stop-opacity="1"/><stop offset="1" stop-color="#f0ded4" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-left-peach" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d4a78f" stop-opacity="1"/><stop offset="1" stop-color="#ddbaa7" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-right-peach" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e1c3b2" stop-opacity="1"/><stop offset="1" stop-color="#e9d2c5" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-wash-olive" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5e6334" stop-opacity="0.11"/><stop offset="0.55" stop-color="#5e6334" stop-opacity="0"/></linearGradient><linearGradient id="bb-light-zone-olive" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eae9e1" stop-opacity="1"/><stop offset="0.45" stop-color="#f3f2ec" stop-opacity="1"/><stop offset="1" stop-color="#f6f5f0" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-roof-olive" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#cfcfbf" stop-opacity="1"/><stop offset="1" stop-color="#dfded2" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-left-olive" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a5a78b" stop-opacity="1"/><stop offset="1" stop-color="#b9baa5" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-right-olive" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c2c3b0" stop-opacity="1"/><stop offset="1" stop-color="#d2d2c4" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-wash-sage" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3d8461" stop-opacity="0.11"/><stop offset="0.55" stop-color="#3d8461" stop-opacity="0"/></linearGradient><linearGradient id="bb-light-zone-sage" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6ece6" stop-opacity="1"/><stop offset="0.45" stop-color="#f2f3ef" stop-opacity="1"/><stop offset="1" stop-color="#f5f5f2" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-roof-sage" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c5d9cc" stop-opacity="1"/><stop offset="1" stop-color="#d8e5db" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-left-sage" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#93b9a4" stop-opacity="1"/><stop offset="1" stop-color="#abc8b7" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-right-sage" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b7cfc0" stop-opacity="1"/><stop offset="1" stop-color="#cadbcf" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-wash-mustard" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8a7026" stop-opacity="0.11"/><stop offset="0.55" stop-color="#8a7026" stop-opacity="0"/></linearGradient><linearGradient id="bb-light-zone-mustard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efeadf" stop-opacity="1"/><stop offset="0.45" stop-color="#f5f2ec" stop-opacity="1"/><stop offset="1" stop-color="#f8f5f0" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-roof-mustard" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dcd3ba" stop-opacity="1"/><stop offset="1" stop-color="#e8e1d0" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-left-mustard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bdae84" stop-opacity="1"/><stop offset="1" stop-color="#ccbf9f" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-right-mustard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d2c8ab" stop-opacity="1"/><stop offset="1" stop-color="#ded5c0" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-wash-mauve" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#76536b" stop-opacity="0.11"/><stop offset="0.55" stop-color="#76536b" stop-opacity="0"/></linearGradient><linearGradient id="bb-light-zone-mauve" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ece7e7" stop-opacity="1"/><stop offset="0.45" stop-color="#f4f1ef" stop-opacity="1"/><stop offset="1" stop-color="#f7f4f2" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-roof-mauve" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d6cacf" stop-opacity="1"/><stop offset="1" stop-color="#e4dbdd" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-left-mauve" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b29eaa" stop-opacity="1"/><stop offset="1" stop-color="#c3b3bc" stop-opacity="1"/></linearGradient><linearGradient id="bb-light-right-mauve" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cbbdc4" stop-opacity="1"/><stop offset="1" stop-color="#d8ced2" stop-opacity="1"/></linearGradient></defs><defs><radialGradient id="bb-dark-glow-a" cx="0.12" cy="0" r="0.75"><stop offset="0" stop-color="#79c39e" stop-opacity="0.13"/><stop offset="1" stop-color="#79c39e" stop-opacity="0"/></radialGradient><radialGradient id="bb-dark-glow-b" cx="0.95" cy="1" r="0.7"><stop offset="0" stop-color="#e77843" stop-opacity="0.09"/><stop offset="1" stop-color="#e77843" stop-opacity="0"/></radialGradient><pattern id="bb-dark-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="1" fill="#2f2b26"/></pattern><pattern id="bb-dark-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#1a1816"/><rect width="2.4" height="6" fill="#ead1b5"/></pattern><linearGradient id="bb-dark-card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#433d39" stop-opacity="1"/><stop offset="1" stop-color="#383431" stop-opacity="1"/></linearGradient><filter id="bb-dark-shadow" x="-25%" y="-25%" width="150%" height="170%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="12"/><feOffset dy="10" result="o"/><feFlood flood-color="#000000" flood-opacity="0.55"/><feComposite in2="o" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-dark-shadow-sm" x="-25%" y="-25%" width="150%" height="170%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="4"/><feOffset dy="3" result="o"/><feFlood flood-color="#000000" flood-opacity="0.45"/><feComposite in2="o" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-dark-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-dark-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter><linearGradient id="bb-dark-wash-teal" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3f6f70" stop-opacity="0.2"/><stop offset="0.55" stop-color="#3f6f70" stop-opacity="0"/></linearGradient><linearGradient id="bb-dark-zone-teal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#202524" stop-opacity="1"/><stop offset="0.45" stop-color="#1c1d1b" stop-opacity="1"/><stop offset="1" stop-color="#1b1b19" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-roof-teal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3c5251" stop-opacity="1"/><stop offset="1" stop-color="#3a4745" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-left-teal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#325151" stop-opacity="1"/><stop offset="1" stop-color="#2a3d3c" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-right-teal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3e3e" stop-opacity="1"/><stop offset="1" stop-color="#242f2d" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-wash-rust" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e77843" stop-opacity="0.2"/><stop offset="0.55" stop-color="#e77843" stop-opacity="0"/></linearGradient><linearGradient id="bb-dark-zone-rust" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#39261d" stop-opacity="1"/><stop offset="0.45" stop-color="#261e19" stop-opacity="1"/><stop offset="1" stop-color="#211b18" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-roof-rust" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#90563a" stop-opacity="1"/><stop offset="1" stop-color="#704a37" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-left-rust" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a15734" stop-opacity="1"/><stop offset="1" stop-color="#704029" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-right-rust" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#74422a" stop-opacity="1"/><stop offset="1" stop-color="#4f3122" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-wash-slate" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#617082" stop-opacity="0.2"/><stop offset="0.55" stop-color="#617082" stop-opacity="0"/></linearGradient><linearGradient id="bb-dark-zone-slate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#252526" stop-opacity="1"/><stop offset="0.45" stop-color="#1e1d1c" stop-opacity="1"/><stop offset="1" stop-color="#1c1b1a" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-roof-slate" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4d525a" stop-opacity="1"/><stop offset="1" stop-color="#45474b" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-left-slate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#49525d" stop-opacity="1"/><stop offset="1" stop-color="#383d43" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-right-slate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#393f46" stop-opacity="1"/><stop offset="1" stop-color="#2c2f32" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-wash-peach" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ee9b69" stop-opacity="0.2"/><stop offset="0.55" stop-color="#ee9b69" stop-opacity="0"/></linearGradient><linearGradient id="bb-dark-zone-peach" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2c22" stop-opacity="1"/><stop offset="0.45" stop-color="#27201b" stop-opacity="1"/><stop offset="1" stop-color="#211d19" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-roof-peach" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93684d" stop-opacity="1"/><stop offset="1" stop-color="#725543" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-left-peach" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a66e4d" stop-opacity="1"/><stop offset="1" stop-color="#734f39" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-right-peach" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#77523b" stop-opacity="1"/><stop offset="1" stop-color="#513a2c" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-wash-olive" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6e7354" stop-opacity="0.2"/><stop offset="0.55" stop-color="#6e7354" stop-opacity="0"/></linearGradient><linearGradient id="bb-dark-zone-olive" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27261f" stop-opacity="1"/><stop offset="0.45" stop-color="#1f1d1a" stop-opacity="1"/><stop offset="1" stop-color="#1d1b18" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-roof-olive" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#535443" stop-opacity="1"/><stop offset="1" stop-color="#49483c" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-left-olive" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#51543f" stop-opacity="1"/><stop offset="1" stop-color="#3d3e30" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-right-olive" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3f4031" stop-opacity="1"/><stop offset="1" stop-color="#303026" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-wash-sage" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#79c39e" stop-opacity="0.2"/><stop offset="0.55" stop-color="#79c39e" stop-opacity="0"/></linearGradient><linearGradient id="bb-dark-zone-sage" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#28322a" stop-opacity="1"/><stop offset="0.45" stop-color="#20221e" stop-opacity="1"/><stop offset="1" stop-color="#1d1e1b" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-roof-sage" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#597c68" stop-opacity="1"/><stop offset="1" stop-color="#4d6254" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-left-sage" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#598970" stop-opacity="1"/><stop offset="1" stop-color="#42604f" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-right-sage" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#446352" stop-opacity="1"/><stop offset="1" stop-color="#334439" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-wash-mustard" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ceb05e" stop-opacity="0.2"/><stop offset="0.55" stop-color="#ceb05e" stop-opacity="0"/></linearGradient><linearGradient id="bb-dark-zone-mustard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#352f21" stop-opacity="1"/><stop offset="0.45" stop-color="#25211a" stop-opacity="1"/><stop offset="1" stop-color="#201d19" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-roof-mustard" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#837248" stop-opacity="1"/><stop offset="1" stop-color="#685c3f" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-left-mustard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#917c46" stop-opacity="1"/><stop offset="1" stop-color="#665834" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-right-mustard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#695b36" stop-opacity="1"/><stop offset="1" stop-color="#494029" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-wash-mauve" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#76536b" stop-opacity="0.2"/><stop offset="0.55" stop-color="#76536b" stop-opacity="0"/></linearGradient><linearGradient id="bb-dark-zone-mauve" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#282123" stop-opacity="1"/><stop offset="0.45" stop-color="#201c1b" stop-opacity="1"/><stop offset="1" stop-color="#1d1a19" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-roof-mauve" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#57444e" stop-opacity="1"/><stop offset="1" stop-color="#4c3e44" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-left-mauve" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#573f4e" stop-opacity="1"/><stop offset="1" stop-color="#41313a" stop-opacity="1"/></linearGradient><linearGradient id="bb-dark-right-mauve" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#42323b" stop-opacity="1"/><stop offset="1" stop-color="#32272c" stop-opacity="1"/></linearGradient></defs>
+<rect class="bb-canvas" x="0" y="0" width="677" height="609"/><rect class="bb-bg-dots" x="0" y="0" width="677" height="609"/><rect class="bb-bg-glow-a" x="0" y="0" width="677" height="609"/><rect class="bb-bg-glow-b" x="0" y="0" width="677" height="609"/>
+<text class="bb-title" x="48" y="64">Flock composition</text>
+<polygon class="iso-shadow" points="176.6,198 384.4,318 271.8,383 64,263"/>
+<polygon class="iso-shadow" points="436.4,348 644.2,468 531.7,533 323.8,413"/>
 <g class="bb-node map-item cat-teal" data-id="planning" tabindex="0" role="button" aria-label="Open details for Planning">
-<polygon class="iso-focus" points="48,255 160.6,190 368.4,310 368.4,348 255.8,413 48,293" fill="none" stroke="none"/>
-<polygon class="iso-face iso-left" points="48,255 255.8,375 255.8,413 48,293"/>
-<polygon class="iso-face iso-right" points="368.4,310 255.8,375 255.8,413 368.4,348"/>
-<polygon class="iso-face iso-roof" points="160.6,190 368.4,310 255.8,375 48,255"/>
+<polygon class="iso-focus" points="48,215 160.6,150 368.4,270 368.4,308 255.8,373 48,253" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="48,215 255.8,335 255.8,373 48,253"/>
+<polygon class="iso-face iso-right" points="368.4,270 255.8,335 255.8,373 368.4,308"/>
+<polygon class="iso-face iso-roof" points="160.6,150 368.4,270 255.8,335 48,215"/>
+<path class="iso-bevel" d="M 48 215 L 160.6 150 L 368.4 270"/>
+<path class="iso-bevel iso-bevel-soft" d="M 48 215 L 255.8 335 L 368.4 270 M 255.8 335 L 255.8 373"/>
 </g>
 <g class="bb-node map-item cat-rust" data-id="execution" tabindex="0" role="button" aria-label="Open details for Execution">
-<polygon class="iso-focus" points="307.8,405 420.4,340 628.2,460 628.2,498 515.7,563 307.8,443" fill="none" stroke="none"/>
-<polygon class="iso-face iso-left" points="307.8,405 515.7,525 515.7,563 307.8,443"/>
-<polygon class="iso-face iso-right" points="628.2,460 515.7,525 515.7,563 628.2,498"/>
-<polygon class="iso-face iso-roof" points="420.4,340 628.2,460 515.7,525 307.8,405"/>
+<polygon class="iso-focus" points="307.8,365 420.4,300 628.2,420 628.2,458 515.7,523 307.8,403" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="307.8,365 515.7,485 515.7,523 307.8,403"/>
+<polygon class="iso-face iso-right" points="628.2,420 515.7,485 515.7,523 628.2,458"/>
+<polygon class="iso-face iso-roof" points="420.4,300 628.2,420 515.7,485 307.8,365"/>
+<path class="iso-bevel" d="M 307.8 365 L 420.4 300 L 628.2 420"/>
+<path class="iso-bevel iso-bevel-soft" d="M 307.8 365 L 515.7 485 L 628.2 420 M 515.7 485 L 515.7 523"/>
 </g>
 <g class="bb-edges">
-<path class="bb-edge control map-item" d="M 312.1 342.5 L 364.1 372.5" marker-end="url(#bb-arrow-control)" data-from="planning" data-to="execution"/>
+<path class="bb-edge-glow bb-edge control map-item" d="M 312.1 302.5 L 364.1 332.5" style="stroke-dasharray:none"/>
+<path class="bb-edge control map-item" d="M 312.1 302.5 L 364.1 332.5" marker-end="url(#bb-arrow-control)" data-from="planning" data-to="execution"/>
 </g>
 <g class="iso-tag map-item cat-teal" data-for="planning" pointer-events="none">
-<rect class="iso-tag-bg" x="106.1" y="256.5" width="204.2" height="42" rx="3"/>
-<circle class="bb-mark" cx="111.1" cy="269" r="3"/>
-<text class="bb-kicker" x="208.2" y="272.5" text-anchor="middle">1 · B0 P1 L0 · PARTIAL</text>
-<text class="bb-node-title" x="208.2" y="291.5" text-anchor="middle">Planning</text>
+<rect class="iso-tag-bg" x="106.1" y="216.5" width="204.2" height="42" rx="10"/>
+<text class="bb-kicker" x="208.2" y="232.5" text-anchor="middle">1 · B0 P1 L0 · PARTIAL</text>
+<text class="bb-node-title" x="208.2" y="251.5" text-anchor="middle">Planning</text>
 </g>
 <g class="iso-tag map-item cat-rust" data-for="execution" pointer-events="none">
-<rect class="iso-tag-bg" x="374" y="406.5" width="188" height="42" rx="3"/>
-<circle class="bb-mark" cx="379" cy="419" r="3"/>
-<text class="bb-kicker" x="468" y="422.5" text-anchor="middle">3 · B2 P0 L1 · BUILT</text>
-<text class="bb-node-title" x="468" y="441.5" text-anchor="middle">Execution</text>
+<rect class="iso-tag-bg" x="374" y="366.5" width="188" height="42" rx="10"/>
+<text class="bb-kicker" x="468" y="382.5" text-anchor="middle">3 · B2 P0 L1 · BUILT</text>
+<text class="bb-node-title" x="468" y="401.5" text-anchor="middle">Execution</text>
 </g>
-<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 597 H 637"/><circle class="bb-mark cat-teal" cx="52" cy="615" r="4"/><text class="bb-legend-text" x="64" y="619">teal</text><circle class="bb-mark cat-rust" cx="111.3" cy="615" r="4"/><text class="bb-legend-text" x="123.3" y="619">rust</text></g>
+<g class="bb-legend" aria-label="Legend"><rect class="bb-legend-bg" x="24" y="559" width="629" height="32" rx="10"/><rect class="bb-key cat-teal" x="48" y="570" width="10" height="10" rx="2.5"/><text class="bb-legend-text" x="64" y="579">teal</text><rect class="bb-key cat-rust" x="111.3" y="570" width="10" height="10" rx="2.5"/><text class="bb-legend-text" x="127.3" y="579">rust</text></g>
 </svg>
-</div></section><section class="panel" data-group="planning" hidden><button type="button" class="back">← Overview</button><h2>Planning · partial · 1 components</h2><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 417 525" width="417" height="525" role="group" aria-labelledby="bb-t">
+</div></section><section class="panel" data-group="planning" hidden><button type="button" class="back">← Overview</button><h2>Planning · partial · 1 components</h2><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 417 485" width="417" height="485" role="group" aria-labelledby="bb-t">
 <title id="bb-t">Planning</title>
 <style>
-text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
-.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
-.bb-subtitle{font-size:14px;font-weight:400}
-.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
-.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
-.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
-.bb-meter-unit{font-size:17px;font-weight:300}
-.bb-meter-track{stroke-width:1;fill:none}
-.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
-.bb-meter-part{stroke-dasharray:2 3}
-.bb-rule{stroke-width:1;fill:none}
-.bb-zone{stroke-width:1}
-.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
-.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
+.bb-title{font-size:32px;font-weight:700;letter-spacing:-.025em}
+.bb-subtitle{font-size:14px}
+.bb-kicker-top{font-size:11px;font-weight:800;letter-spacing:2px}
+.bb-summary{font-size:11px;font-weight:700;letter-spacing:.08em}
+.bb-meter-big{font-size:34px;font-weight:750;letter-spacing:-.03em}
+.bb-meter-track{stroke-width:1}
+.bb-zone{stroke-width:1.2}
+.bb-zone-accent{fill:none;stroke-width:2.5;stroke-linecap:round}
+.bb-zone-kicker{font-size:10.5px;font-weight:800;letter-spacing:1.6px}
+.bb-zone-title{font-size:20px;font-weight:650;letter-spacing:-.01em}
 .bb-zone-sub{font-size:11.5px}
-.bb-node-box{stroke-width:1}
-.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
-.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
-.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
-.bb-copy{font-size:13.5px;font-weight:400}
-.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
-.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
-.bb-dot{stroke-width:1.1;fill:none}
-.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
-.bb-edge.control{stroke-dasharray:3 4}
-.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
-.bb-edge.is-planned{opacity:.4}
-.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
-.bb-legend-text{font-size:12px;font-weight:400}
-.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
-.iso-face{stroke-width:.8;stroke-linejoin:round}
-.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
-.iso-hatch line{stroke-width:.8;opacity:.45}
-.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
-html[data-theme=light] .bb-canvas{fill:#fbf9f6}
-html[data-theme=light] .bb-title,html[data-theme=light] .bb-zone-title,html[data-theme=light] .bb-node-title,html[data-theme=light] .bb-meter-big,html[data-theme=light] .bb-meter-unit{fill:#2f2a27}
-html[data-theme=light] .bb-subtitle,html[data-theme=light] .bb-copy,html[data-theme=light] .bb-hint,html[data-theme=light] .bb-legend-text,html[data-theme=light] .bb-meta,html[data-theme=light] .bb-kicker,html[data-theme=light] .bb-zone-kicker,html[data-theme=light] .bb-kicker-top,html[data-theme=light] .bb-zone-sub{fill:#716961}
-html[data-theme=light] .bb-rule,html[data-theme=light] .bb-meter-track{stroke:#dcdad7}
-html[data-theme=light] .bb-meter-solid{stroke:#2f2a27}
-html[data-theme=light] .bb-meter-part{stroke:#716961}
-html[data-theme=light] .bb-zone{fill:#f5f3f0;stroke:#dcdad7}
-html[data-theme=light] .bb-node-box{fill:#fffdfa;stroke:#dcdad7}
-html[data-theme=light] .bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
-html[data-theme=light] .bb-node.status-planned .bb-node-title{fill:#716961}
-html[data-theme=light] .bb-status-text{fill:#716961}
-html[data-theme=light] .bb-status.is-implemented .bb-status-text{fill:#716961}
-html[data-theme=light] .bb-dot{stroke:#716961}
-html[data-theme=light] .bb-dot-fill{fill:#716961}
-html[data-theme=light] .bb-status.is-implemented .bb-dot{stroke:#2f2a27}
-html[data-theme=light] .bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
-html[data-theme=light] .bb-edge.data{stroke:#888079}
-html[data-theme=light] .bb-edge.control{stroke:#747c86}
+.bb-node-box{stroke-width:1.2}
+.bb-node-bevel{fill:none;stroke-width:1}
+.bb-node.status-planned .bb-node-wash,.bb-node.status-planned .bb-node-bevel{display:none}
+.bb-edge-glow{fill:none;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+.bb-edge-glow.is-planned{display:none}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:6 4}
+.bb-node.status-planned .bb-band{fill-opacity:.28;stroke-opacity:0}
+.bb-node.status-partial .bb-band-rest{fill-opacity:.28}
+.bb-kicker{font-size:10.5px;font-weight:800;letter-spacing:1.1px}
+.bb-node-title{font-size:17px;font-weight:700}
+.bb-copy{font-size:13.5px}
+.bb-hint{font-size:11.5px;font-weight:600}
+.bb-badge{stroke-width:1}
+.bb-badge-text{font-size:9.5px;font-weight:700;letter-spacing:.4px}
+.bb-dot{stroke-width:1.3;fill:none}
+.bb-edge{fill:none;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:6 6}
+.bb-edge.failure{stroke-dasharray:3 5}
+.bb-edge.is-planned{opacity:.45}
+.bb-label-bg{stroke-width:1}
+.bb-label{font-size:11.5px;font-weight:700}
+.bb-legend-text{font-size:11px}
+
+.iso-face{stroke-width:1.1;stroke-linejoin:round}
+.iso-bevel{fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.iso-bevel-soft{stroke-width:1;opacity:.35}
+.bb-zone-floor-grid{fill:none;stroke-width:.8}
+.bb-node.status-planned .iso-face{fill-opacity:.06;stroke-dasharray:5 4;stroke-width:1.3}
+.iso-tag-halo{paint-order:stroke;stroke-width:5px;stroke-linejoin:round}
+.iso-hatch line{stroke-width:1;opacity:.35}
+.bb-node[tabindex]:hover .iso-roof,.bb-node[tabindex]:focus .iso-roof,.bb-node.is-selected .iso-roof{stroke-width:2.6}
+html[data-theme=light] .iso-edge-line{stroke:#d2cbc4}
+html[data-theme=light] .iso-tag-halo{stroke:#fbf9f6}
+html[data-theme=light] .iso-hatch line{stroke:#2f2a27}
+html[data-theme=light] .bb-node:not([class*=cat-]) .iso-roof{fill:#f3f0ec;stroke:#d2cbc4}
+html[data-theme=light] .bb-node:not([class*=cat-]) .iso-left,html[data-theme=light] .bb-node:not([class*=cat-]) .iso-right{fill:#fffdfa;stroke:#d2cbc4}html[data-theme=light] .bb-canvas{fill:#fbf9f6}
+html[data-theme=light] .bb-title{fill:#2f2a27}
+html[data-theme=light] .bb-subtitle,html[data-theme=light] .bb-zone-sub,html[data-theme=light] .bb-copy{fill:#716961}
+html[data-theme=light] .bb-zone-title{fill:#2f2a27}
+html[data-theme=light] .bb-node-box{fill:#fffdfa;stroke:#d2cbc4}
+html[data-theme=light] .bb-node-title{fill:#2f2a27}
+html[data-theme=light] .bb-hint{fill:#716961}
+html[data-theme=light] .bb-badge{fill:#f3f0ec;stroke:#d2cbc4}
+html[data-theme=light] .bb-badge-text{fill:#2f2a27}
+html[data-theme=light] .bb-edge.data{stroke:#6f665e}
+html[data-theme=light] .bb-edge.control{stroke:#56606d}
 html[data-theme=light] .bb-edge.failure{stroke:#9b4a36}
-html[data-theme=light] .bb-arrow.data{fill:#888079}
-html[data-theme=light] .bb-arrow.control{fill:#747c86}
+html[data-theme=light] .bb-arrow.data{fill:#6f665e}
+html[data-theme=light] .bb-arrow.control{fill:#56606d}
 html[data-theme=light] .bb-arrow.failure{fill:#9b4a36}
-html[data-theme=light] .bb-label,html[data-theme=light] .iso-label-knockout{stroke:#fbf9f6}
-html[data-theme=light] .bb-label.data{fill:#716961}
-html[data-theme=light] .bb-label.control{fill:#4c535c}
+html[data-theme=light] .bb-label-bg{fill:#fbf9f6;stroke:#d2cbc4}
+html[data-theme=light] .bb-label.data{fill:#2f2a27}
+html[data-theme=light] .bb-label.control{fill:#56606d}
 html[data-theme=light] .bb-label.failure{fill:#9b4a36}
-html[data-theme=light] .bb-flow{stroke:#2f2a27;stroke-opacity:.55}
-html[data-theme=light] .bb-finding-text,html[data-theme=light] .bb-finding-inline{fill:#9b4a36}
-html[data-theme=light] .bb-node.has-finding .bb-node-box{stroke:#9b4a36}
-html[data-theme=light] .bb-pseudo-fill{fill:#2f2a27}
-html[data-theme=light] .bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
-html[data-theme=light] .bb-pseudo-choice{fill:#fffdfa}
-html[data-theme=light] .bb-node.is-selected .bb-node-box,html[data-theme=light] .bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
-html[data-theme=light] .iso-shadow{fill:#3b2f26;fill-opacity:0.08}
-html[data-theme=light] .iso-hatch line{stroke:#fbf9f6}
-html[data-theme=light] .iso-tag-bg,html[data-theme=light] .iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
-html[data-theme=light] .bb-label.plain{stroke:none}
-html[data-theme=light] .bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}html[data-theme=dark] .bb-canvas{fill:#1a1816}
-html[data-theme=dark] .bb-title,html[data-theme=dark] .bb-zone-title,html[data-theme=dark] .bb-node-title,html[data-theme=dark] .bb-meter-big,html[data-theme=dark] .bb-meter-unit{fill:#ead1b5}
-html[data-theme=dark] .bb-subtitle,html[data-theme=dark] .bb-copy,html[data-theme=dark] .bb-hint,html[data-theme=dark] .bb-legend-text,html[data-theme=dark] .bb-meta,html[data-theme=dark] .bb-kicker,html[data-theme=dark] .bb-zone-kicker,html[data-theme=dark] .bb-kicker-top,html[data-theme=dark] .bb-zone-sub{fill:#b09080}
-html[data-theme=dark] .bb-rule,html[data-theme=dark] .bb-meter-track{stroke:#35302b}
-html[data-theme=dark] .bb-meter-solid{stroke:#ead1b5}
-html[data-theme=dark] .bb-meter-part{stroke:#b09080}
-html[data-theme=dark] .bb-zone{fill:#1f1c19;stroke:#35302b}
-html[data-theme=dark] .bb-node-box{fill:#272421;stroke:#35302b}
-html[data-theme=dark] .bb-node.status-planned .bb-node-box{fill:none;stroke:#4c443c}
-html[data-theme=dark] .bb-node.status-planned .bb-node-title{fill:#b09080}
-html[data-theme=dark] .bb-status-text{fill:#b09080}
-html[data-theme=dark] .bb-status.is-implemented .bb-status-text{fill:#b09080}
-html[data-theme=dark] .bb-dot{stroke:#b09080}
-html[data-theme=dark] .bb-dot-fill{fill:#b09080}
-html[data-theme=dark] .bb-status.is-implemented .bb-dot{stroke:#ead1b5}
-html[data-theme=dark] .bb-status.is-implemented .bb-dot-fill{fill:#ead1b5}
-html[data-theme=dark] .bb-edge.data{stroke:#958574}
-html[data-theme=dark] .bb-edge.control{stroke:#6b737e}
+html[data-theme=light] .bb-flow{stroke:#2f2a27}
+html[data-theme=light] .bb-legend-text{fill:#716961}html[data-theme=light] .bb-dot{stroke:#2f2a27}html[data-theme=light] .bb-dot-fill{fill:#2f2a27}html[data-theme=light] .bb-pseudo-fill{fill:#2f2a27}html[data-theme=light] .bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.6}html[data-theme=light] .bb-pseudo-choice{fill:#fffdfa}html[data-theme=light] .bb-finding-bg{fill:#fbf9f6;stroke:#9b4a36;stroke-width:1.2}html[data-theme=light] .bb-finding-text{fill:#9b4a36;font-size:9.5px;font-weight:800;letter-spacing:.4px}html[data-theme=light] .bb-node.has-finding .bb-node-box{stroke:#9b4a36;stroke-width:2}html[data-theme=light] .bb-finding-inline{fill:#9b4a36}html[data-theme=light] .bb-accent{fill:#3d8461}
+html[data-theme=light] .bb-bg-glow-a{fill:url(#bb-light-glow-a)}
+html[data-theme=light] .bb-bg-glow-b{fill:url(#bb-light-glow-b)}
+html[data-theme=light] .bb-bg-dots{fill:url(#bb-light-dots)}
+html[data-theme=light] .bb-node-box{fill:url(#bb-light-card);filter:url(#bb-light-shadow)}
+html[data-theme=light] .bb-node.status-planned .bb-node-box{fill:#fbf9f6;fill-opacity:.55;filter:none}
+html[data-theme=light] .bb-node-bevel{stroke:#fffdfa;stroke-opacity:0}
+html[data-theme=light] .bb-band{filter:none}
+html[data-theme=light] .bb-edge-glow{stroke-opacity:0.08}
+html[data-theme=light] .bb-flow{filter:none}
+html[data-theme=light] .bb-label-bg{fill:#fdfbf8;filter:url(#bb-light-shadow-sm)}
+html[data-theme=light] .bb-meter-hatch{fill:url(#bb-light-hatch)}
+html[data-theme=light] .bb-meter-solid{fill:#2f2a27}
+html[data-theme=light] .bb-meter-track{fill:#efedea;stroke:#d2cbc4}
+html[data-theme=light] .bb-meter-big{fill:#2f2a27}
+html[data-theme=light] .bb-legend-bg{fill:#fdfbf8;stroke:#d2cbc4;stroke-opacity:.6}
+html[data-theme=light] .bb-badge.is-implemented{fill:#2f2a27;stroke:#2f2a27}
+html[data-theme=light] .bb-status.is-implemented .bb-badge-text{fill:#fbf9f6}
+html[data-theme=light] .bb-status.is-implemented .bb-dot-fill{fill:#fbf9f6}
+html[data-theme=light] .bb-zone-floor-grid{stroke:#dad8d5;stroke-opacity:.8}
+html[data-theme=light] .iso-tag-bg{fill:#fffdfa;fill-opacity:.94;stroke:#d2cbc4;stroke-width:1.2;filter:url(#bb-light-shadow-sm)}
+html[data-theme=light] .iso-shadow{fill:#3b2f26;fill-opacity:0.16;filter:url(#bb-light-soft)}html[data-theme=dark] .iso-edge-line{stroke:#5c564f}
+html[data-theme=dark] .iso-tag-halo{stroke:#1a1816}
+html[data-theme=dark] .iso-hatch line{stroke:#ead1b5}
+html[data-theme=dark] .bb-node:not([class*=cat-]) .iso-roof{fill:#4a4540;stroke:#5c564f}
+html[data-theme=dark] .bb-node:not([class*=cat-]) .iso-left,html[data-theme=dark] .bb-node:not([class*=cat-]) .iso-right{fill:#383431;stroke:#5c564f}html[data-theme=dark] .bb-canvas{fill:#1a1816}
+html[data-theme=dark] .bb-title{fill:#ead1b5}
+html[data-theme=dark] .bb-subtitle,html[data-theme=dark] .bb-zone-sub,html[data-theme=dark] .bb-copy{fill:#b09080}
+html[data-theme=dark] .bb-zone-title{fill:#ead1b5}
+html[data-theme=dark] .bb-node-box{fill:#383431;stroke:#5c564f}
+html[data-theme=dark] .bb-node-title{fill:#ead1b5}
+html[data-theme=dark] .bb-hint{fill:#b09080}
+html[data-theme=dark] .bb-badge{fill:#4a4540;stroke:#5c564f}
+html[data-theme=dark] .bb-badge-text{fill:#ead1b5}
+html[data-theme=dark] .bb-edge.data{stroke:#c9b49c}
+html[data-theme=dark] .bb-edge.control{stroke:#8d9aab}
 html[data-theme=dark] .bb-edge.failure{stroke:#c27a5c}
-html[data-theme=dark] .bb-arrow.data{fill:#958574}
-html[data-theme=dark] .bb-arrow.control{fill:#6b737e}
+html[data-theme=dark] .bb-arrow.data{fill:#c9b49c}
+html[data-theme=dark] .bb-arrow.control{fill:#8d9aab}
 html[data-theme=dark] .bb-arrow.failure{fill:#c27a5c}
-html[data-theme=dark] .bb-label,html[data-theme=dark] .iso-label-knockout{stroke:#1a1816}
-html[data-theme=dark] .bb-label.data{fill:#b09080}
-html[data-theme=dark] .bb-label.control{fill:#a4a8ae}
+html[data-theme=dark] .bb-label-bg{fill:#1a1816;stroke:#5c564f}
+html[data-theme=dark] .bb-label.data{fill:#ead1b5}
+html[data-theme=dark] .bb-label.control{fill:#8d9aab}
 html[data-theme=dark] .bb-label.failure{fill:#c27a5c}
-html[data-theme=dark] .bb-flow{stroke:#ead1b5;stroke-opacity:.55}
-html[data-theme=dark] .bb-finding-text,html[data-theme=dark] .bb-finding-inline{fill:#c27a5c}
-html[data-theme=dark] .bb-node.has-finding .bb-node-box{stroke:#c27a5c}
-html[data-theme=dark] .bb-pseudo-fill{fill:#ead1b5}
-html[data-theme=dark] .bb-pseudo-ring{fill:#1a1816;stroke:#ead1b5;stroke-width:1.3}
-html[data-theme=dark] .bb-pseudo-choice{fill:#272421}
-html[data-theme=dark] .bb-node.is-selected .bb-node-box,html[data-theme=dark] .bb-node[tabindex]:focus .bb-node-box{stroke:#ead1b5}
-html[data-theme=dark] .iso-shadow{fill:#000000;fill-opacity:0.32}
-html[data-theme=dark] .iso-hatch line{stroke:#1a1816}
-html[data-theme=dark] .iso-tag-bg,html[data-theme=dark] .iso-label-bg{fill:#1a1816;fill-opacity:.9}
-html[data-theme=dark] .bb-label.plain{stroke:none}
-html[data-theme=dark] .bb-node:not([class*=cat-]) .iso-face{fill:#272421;stroke:#35302b}html[data-theme=light] .iso-tag-bg,html[data-theme=light] .iso-label-bg{fill:#fbf9f6;fill-opacity:1}
-html[data-theme=light] .iso-tag .bb-node-title,html[data-theme=light] .iso-tag .bb-kicker,html[data-theme=light] .bb-edge-label .bb-label{fill:#2f2a27}
-html[data-theme=light] .bb-node.status-partial .iso-hatch line{stroke:#2f2a27;opacity:.9}
-html[data-theme=light].workflow-active .bb-node:not(.is-dimmed) .iso-roof{stroke:#2f2a27;stroke-width:4}
-html[data-theme=dark] .iso-tag-bg,html[data-theme=dark] .iso-label-bg{fill:#1a1816;fill-opacity:1}
-html[data-theme=dark] .iso-tag .bb-node-title,html[data-theme=dark] .iso-tag .bb-kicker,html[data-theme=dark] .bb-edge-label .bb-label{fill:#ead1b5}
-html[data-theme=dark] .bb-node.status-partial .iso-hatch line{stroke:#ead1b5;opacity:.9}
-html[data-theme=dark].workflow-active .bb-node:not(.is-dimmed) .iso-roof{stroke:#ead1b5;stroke-width:4}
-</style>
-<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
-<rect class="bb-canvas" x="0" y="0" width="417" height="525"/>
-<text class="bb-title" x="48" y="100">Planning</text>
-<g class="bb-meter" aria-label="0% built"><text class="bb-kicker-top" x="369" y="52" text-anchor="end">COMPLETION</text><text x="369" y="96" text-anchor="end"><tspan class="bb-meter-big">0</tspan><tspan class="bb-meter-unit" dx="3">%</tspan></text><path class="bb-meter-track" d="M 149 110 H 369"/><path class="bb-meter-part" d="M 149 110 H 369"/><text class="bb-meta" x="369" y="132" text-anchor="end">0 built · 1 partial · 0 planned</text></g>
-<polygon class="iso-shadow" points="172.6,235 380.4,355 267.8,420 60,300"/>
+html[data-theme=dark] .bb-flow{stroke:#ead1b5}
+html[data-theme=dark] .bb-legend-text{fill:#b09080}html[data-theme=dark] .bb-dot{stroke:#ead1b5}html[data-theme=dark] .bb-dot-fill{fill:#ead1b5}html[data-theme=dark] .bb-pseudo-fill{fill:#ead1b5}html[data-theme=dark] .bb-pseudo-ring{fill:#1a1816;stroke:#ead1b5;stroke-width:1.6}html[data-theme=dark] .bb-pseudo-choice{fill:#383431}html[data-theme=dark] .bb-finding-bg{fill:#1a1816;stroke:#c27a5c;stroke-width:1.2}html[data-theme=dark] .bb-finding-text{fill:#c27a5c;font-size:9.5px;font-weight:800;letter-spacing:.4px}html[data-theme=dark] .bb-node.has-finding .bb-node-box{stroke:#c27a5c;stroke-width:2}html[data-theme=dark] .bb-finding-inline{fill:#c27a5c}html[data-theme=dark] .bb-accent{fill:#79c39e}
+html[data-theme=dark] .bb-bg-glow-a{fill:url(#bb-dark-glow-a)}
+html[data-theme=dark] .bb-bg-glow-b{fill:url(#bb-dark-glow-b)}
+html[data-theme=dark] .bb-bg-dots{fill:url(#bb-dark-dots)}
+html[data-theme=dark] .bb-node-box{fill:url(#bb-dark-card);filter:url(#bb-dark-shadow)}
+html[data-theme=dark] .bb-node.status-planned .bb-node-box{fill:#1a1816;fill-opacity:.55;filter:none}
+html[data-theme=dark] .bb-node-bevel{stroke:#544d46;stroke-opacity:1}
+html[data-theme=dark] .bb-band{filter:url(#bb-dark-glow)}
+html[data-theme=dark] .bb-edge-glow{stroke-opacity:0.16}
+html[data-theme=dark] .bb-flow{filter:url(#bb-dark-glow)}
+html[data-theme=dark] .bb-label-bg{fill:#34302d;filter:url(#bb-dark-shadow-sm)}
+html[data-theme=dark] .bb-meter-hatch{fill:url(#bb-dark-hatch)}
+html[data-theme=dark] .bb-meter-solid{fill:#ead1b5}
+html[data-theme=dark] .bb-meter-track{fill:#292521;stroke:#5c564f}
+html[data-theme=dark] .bb-meter-big{fill:#ead1b5}
+html[data-theme=dark] .bb-legend-bg{fill:#282522;stroke:#5c564f;stroke-opacity:.6}
+html[data-theme=dark] .bb-badge.is-implemented{fill:#ead1b5;stroke:#ead1b5}
+html[data-theme=dark] .bb-status.is-implemented .bb-badge-text{fill:#1a1816}
+html[data-theme=dark] .bb-status.is-implemented .bb-dot-fill{fill:#1a1816}
+html[data-theme=dark] .bb-zone-floor-grid{stroke:#3b362f;stroke-opacity:.8}
+html[data-theme=dark] .iso-tag-bg{fill:#312d2a;fill-opacity:.94;stroke:#5c564f;stroke-width:1.2;filter:url(#bb-dark-shadow-sm)}
+html[data-theme=dark] .iso-shadow{fill:#000000;fill-opacity:0.5;filter:url(#bb-dark-soft)}</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="8.5" markerHeight="8.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 0.6 L 10 5 L 0 9.4 L 2.6 5 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="8.5" markerHeight="8.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 0.6 L 10 5 L 0 9.4 L 2.6 5 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="8.5" markerHeight="8.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 0.6 L 10 5 L 0 9.4 L 2.6 5 z"/></marker></defs><defs><radialGradient id="bb-light-glow-a" cx="0.12" cy="0" r="0.75"><stop offset="0" stop-color="#3d8461" stop-opacity="0.1"/><stop offset="1" stop-color="#3d8461" stop-opacity="0"/></radialGradient><radialGradient id="bb-light-glow-b" cx="0.95" cy="1" r="0.7"><stop offset="0" stop-color="#b9531f" stop-opacity="0.07"/><stop offset="1" stop-color="#b9531f" stop-opacity="0"/></radialGradient><pattern id="bb-light-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="1" fill="#e3e0dd"/></pattern><pattern id="bb-light-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fbf9f6"/><rect width="2.4" height="6" fill="#2f2a27"/></pattern><linearGradient id="bb-light-card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffdfa" stop-opacity="1"/><stop offset="1" stop-color="#fffdfa" stop-opacity="1"/></linearGradient><filter id="bb-light-shadow" x="-25%" y="-25%" width="150%" height="170%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="10"/><feOffset dy="8" result="o"/><feFlood flood-color="#3b2f26" flood-opacity="0.13"/><feComposite in2="o" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-light-shadow-sm" x="-25%" y="-25%" width="150%" height="170%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="4"/><feOffset dy="3" result="o"/><feFlood flood-color="#3b2f26" flood-opacity="0.1"/><feComposite in2="o" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-light-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-light-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter></defs><defs><radialGradient id="bb-dark-glow-a" cx="0.12" cy="0" r="0.75"><stop offset="0" stop-color="#79c39e" stop-opacity="0.13"/><stop offset="1" stop-color="#79c39e" stop-opacity="0"/></radialGradient><radialGradient id="bb-dark-glow-b" cx="0.95" cy="1" r="0.7"><stop offset="0" stop-color="#e77843" stop-opacity="0.09"/><stop offset="1" stop-color="#e77843" stop-opacity="0"/></radialGradient><pattern id="bb-dark-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="1" fill="#2f2b26"/></pattern><pattern id="bb-dark-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#1a1816"/><rect width="2.4" height="6" fill="#ead1b5"/></pattern><linearGradient id="bb-dark-card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#433d39" stop-opacity="1"/><stop offset="1" stop-color="#383431" stop-opacity="1"/></linearGradient><filter id="bb-dark-shadow" x="-25%" y="-25%" width="150%" height="170%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="12"/><feOffset dy="10" result="o"/><feFlood flood-color="#000000" flood-opacity="0.55"/><feComposite in2="o" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-dark-shadow-sm" x="-25%" y="-25%" width="150%" height="170%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="4"/><feOffset dy="3" result="o"/><feFlood flood-color="#000000" flood-opacity="0.45"/><feComposite in2="o" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-dark-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-dark-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter></defs>
+<rect class="bb-canvas" x="0" y="0" width="417" height="485"/><rect class="bb-bg-dots" x="0" y="0" width="417" height="485"/><rect class="bb-bg-glow-a" x="0" y="0" width="417" height="485"/><rect class="bb-bg-glow-b" x="0" y="0" width="417" height="485"/>
+<text class="bb-title" x="48" y="64">Planning</text>
+<g class="bb-meter" aria-label="0% built"><text class="bb-meter-big" x="369" y="56" text-anchor="end">0%</text><text class="bb-summary bb-subtitle" x="316.2" y="55" text-anchor="end">BUILT</text><clipPath id="bb-meter-clip"><rect x="109" y="74" width="260" height="9" rx="4.5"/></clipPath><rect class="bb-meter-track" x="109" y="74" width="260" height="9" rx="4.5"/><g clip-path="url(#bb-meter-clip)"><rect class="bb-meter-hatch" x="109" y="74" width="260" height="9"/></g><text class="bb-summary bb-subtitle" x="369" y="100" text-anchor="end">0 BUILT · 1 PARTIAL · 0 PLANNED</text></g>
+<polygon class="iso-shadow" points="176.6,198 384.4,318 271.8,383 64,263"/>
 <g class="bb-node map-item status-partial" data-id="ship" tabindex="0" role="button" aria-label="Open details for Ship">
-<polygon class="iso-focus" points="48,255 160.6,190 368.4,310 368.4,348 255.8,413 48,293" fill="none" stroke="none"/>
-<polygon class="iso-face iso-left" points="48,255 255.8,375 255.8,413 48,293"/>
-<polygon class="iso-face iso-right" points="368.4,310 255.8,375 255.8,413 368.4,348"/>
-<polygon class="iso-face iso-roof" points="160.6,190 368.4,310 255.8,375 48,255"/>
-<clipPath id="clip-ship"><polygon class="" points="160.6,190 368.4,310 255.8,375 48,255"/></clipPath><g class="iso-hatch" clip-path="url(#clip-ship)"><line x1="-137" y1="375" x2="48" y2="190"/><line x1="-128" y1="375" x2="57" y2="190"/><line x1="-119" y1="375" x2="66" y2="190"/><line x1="-110" y1="375" x2="75" y2="190"/><line x1="-101" y1="375" x2="84" y2="190"/><line x1="-92" y1="375" x2="93" y2="190"/><line x1="-83" y1="375" x2="102" y2="190"/><line x1="-74" y1="375" x2="111" y2="190"/><line x1="-65" y1="375" x2="120" y2="190"/><line x1="-56" y1="375" x2="129" y2="190"/><line x1="-47" y1="375" x2="138" y2="190"/><line x1="-38" y1="375" x2="147" y2="190"/><line x1="-29" y1="375" x2="156" y2="190"/><line x1="-20" y1="375" x2="165" y2="190"/><line x1="-11" y1="375" x2="174" y2="190"/><line x1="-2" y1="375" x2="183" y2="190"/><line x1="7" y1="375" x2="192" y2="190"/><line x1="16" y1="375" x2="201" y2="190"/><line x1="25" y1="375" x2="210" y2="190"/><line x1="34" y1="375" x2="219" y2="190"/><line x1="43" y1="375" x2="228" y2="190"/><line x1="52" y1="375" x2="237" y2="190"/><line x1="61" y1="375" x2="246" y2="190"/><line x1="70" y1="375" x2="255" y2="190"/><line x1="79" y1="375" x2="264" y2="190"/><line x1="88" y1="375" x2="273" y2="190"/><line x1="97" y1="375" x2="282" y2="190"/><line x1="106" y1="375" x2="291" y2="190"/><line x1="115" y1="375" x2="300" y2="190"/><line x1="124" y1="375" x2="309" y2="190"/><line x1="133" y1="375" x2="318" y2="190"/><line x1="142" y1="375" x2="327" y2="190"/><line x1="151" y1="375" x2="336" y2="190"/><line x1="160" y1="375" x2="345" y2="190"/><line x1="169" y1="375" x2="354" y2="190"/><line x1="178" y1="375" x2="363" y2="190"/><line x1="187" y1="375" x2="372" y2="190"/><line x1="196" y1="375" x2="381" y2="190"/><line x1="205" y1="375" x2="390" y2="190"/><line x1="214" y1="375" x2="399" y2="190"/><line x1="223" y1="375" x2="408" y2="190"/><line x1="232" y1="375" x2="417" y2="190"/><line x1="241" y1="375" x2="426" y2="190"/><line x1="250" y1="375" x2="435" y2="190"/><line x1="259" y1="375" x2="444" y2="190"/><line x1="268" y1="375" x2="453" y2="190"/><line x1="277" y1="375" x2="462" y2="190"/><line x1="286" y1="375" x2="471" y2="190"/><line x1="295" y1="375" x2="480" y2="190"/><line x1="304" y1="375" x2="489" y2="190"/><line x1="313" y1="375" x2="498" y2="190"/><line x1="322" y1="375" x2="507" y2="190"/><line x1="331" y1="375" x2="516" y2="190"/><line x1="340" y1="375" x2="525" y2="190"/><line x1="349" y1="375" x2="534" y2="190"/><line x1="358" y1="375" x2="543" y2="190"/><line x1="367" y1="375" x2="552" y2="190"/></g>
+<polygon class="iso-focus" points="48,215 160.6,150 368.4,270 368.4,308 255.8,373 48,253" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="48,215 255.8,335 255.8,373 48,253"/>
+<polygon class="iso-face iso-right" points="368.4,270 255.8,335 255.8,373 368.4,308"/>
+<polygon class="iso-face iso-roof" points="160.6,150 368.4,270 255.8,335 48,215"/>
+<clipPath id="clip-ship"><polygon class="" points="160.6,150 368.4,270 255.8,335 48,215"/></clipPath><g class="iso-hatch" clip-path="url(#clip-ship)"><line x1="-137" y1="335" x2="48" y2="150"/><line x1="-128" y1="335" x2="57" y2="150"/><line x1="-119" y1="335" x2="66" y2="150"/><line x1="-110" y1="335" x2="75" y2="150"/><line x1="-101" y1="335" x2="84" y2="150"/><line x1="-92" y1="335" x2="93" y2="150"/><line x1="-83" y1="335" x2="102" y2="150"/><line x1="-74" y1="335" x2="111" y2="150"/><line x1="-65" y1="335" x2="120" y2="150"/><line x1="-56" y1="335" x2="129" y2="150"/><line x1="-47" y1="335" x2="138" y2="150"/><line x1="-38" y1="335" x2="147" y2="150"/><line x1="-29" y1="335" x2="156" y2="150"/><line x1="-20" y1="335" x2="165" y2="150"/><line x1="-11" y1="335" x2="174" y2="150"/><line x1="-2" y1="335" x2="183" y2="150"/><line x1="7" y1="335" x2="192" y2="150"/><line x1="16" y1="335" x2="201" y2="150"/><line x1="25" y1="335" x2="210" y2="150"/><line x1="34" y1="335" x2="219" y2="150"/><line x1="43" y1="335" x2="228" y2="150"/><line x1="52" y1="335" x2="237" y2="150"/><line x1="61" y1="335" x2="246" y2="150"/><line x1="70" y1="335" x2="255" y2="150"/><line x1="79" y1="335" x2="264" y2="150"/><line x1="88" y1="335" x2="273" y2="150"/><line x1="97" y1="335" x2="282" y2="150"/><line x1="106" y1="335" x2="291" y2="150"/><line x1="115" y1="335" x2="300" y2="150"/><line x1="124" y1="335" x2="309" y2="150"/><line x1="133" y1="335" x2="318" y2="150"/><line x1="142" y1="335" x2="327" y2="150"/><line x1="151" y1="335" x2="336" y2="150"/><line x1="160" y1="335" x2="345" y2="150"/><line x1="169" y1="335" x2="354" y2="150"/><line x1="178" y1="335" x2="363" y2="150"/><line x1="187" y1="335" x2="372" y2="150"/><line x1="196" y1="335" x2="381" y2="150"/><line x1="205" y1="335" x2="390" y2="150"/><line x1="214" y1="335" x2="399" y2="150"/><line x1="223" y1="335" x2="408" y2="150"/><line x1="232" y1="335" x2="417" y2="150"/><line x1="241" y1="335" x2="426" y2="150"/><line x1="250" y1="335" x2="435" y2="150"/><line x1="259" y1="335" x2="444" y2="150"/><line x1="268" y1="335" x2="453" y2="150"/><line x1="277" y1="335" x2="462" y2="150"/><line x1="286" y1="335" x2="471" y2="150"/><line x1="295" y1="335" x2="480" y2="150"/><line x1="304" y1="335" x2="489" y2="150"/><line x1="313" y1="335" x2="498" y2="150"/><line x1="322" y1="335" x2="507" y2="150"/><line x1="331" y1="335" x2="516" y2="150"/><line x1="340" y1="335" x2="525" y2="150"/><line x1="349" y1="335" x2="534" y2="150"/><line x1="358" y1="335" x2="543" y2="150"/><line x1="367" y1="335" x2="552" y2="150"/></g>
+<path class="iso-bevel" d="M 48 215 L 160.6 150 L 368.4 270"/>
+<path class="iso-bevel iso-bevel-soft" d="M 48 215 L 255.8 335 L 368.4 270 M 255.8 335 L 255.8 373"/>
 </g>
 <g class="bb-edges">
 </g>
 <g class="iso-tag map-item" data-for="ship" pointer-events="none">
-<rect class="iso-tag-bg" x="122.3" y="256.5" width="171.8" height="42" rx="3"/>
-<text class="bb-kicker" x="208.2" y="272.5" text-anchor="middle">WORKFLOW · PARTIAL</text>
-<text class="bb-node-title" x="208.2" y="291.5" text-anchor="middle">Ship</text>
+<rect class="iso-tag-bg" x="122.3" y="216.5" width="171.8" height="42" rx="10"/>
+<text class="bb-kicker" x="208.2" y="232.5" text-anchor="middle">WORKFLOW · PARTIAL</text>
+<text class="bb-node-title" x="208.2" y="251.5" text-anchor="middle">Ship</text>
 </g>
-<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 447 H 377"/><text class="bb-legend-text" x="48" y="469">Built = solid</text><text class="bb-legend-text" x="148.225" y="469">Partial = hatched roof</text><text class="bb-legend-text" x="48" y="495">Planned = wireframe</text></g>
+<g class="bb-legend" aria-label="Legend"><rect class="bb-legend-bg" x="24" y="409" width="369" height="58" rx="10"/><text class="bb-legend-text" x="48" y="429">Built = solid</text><text class="bb-legend-text" x="152.225" y="429">Partial = hatched roof</text><text class="bb-legend-text" x="48" y="455">Planned = wireframe</text></g>
 </svg>
 </div><ul class="purposes"><li><strong>Ship</strong> · Coordinate release steps · partial</li></ul><ol class="connections"><li data-from="ship" data-to="review">ship → review · step 1 · other group</li><li data-from="ship" data-to="publish">ship → publish · step 2 · other group</li></ol></section>
-<section class="panel" data-group="execution" hidden><button type="button" class="back">← Overview</button><h2>Execution · built · 3 components</h2><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 937 799" width="937" height="799" role="group" aria-labelledby="bb-t">
+<section class="panel" data-group="execution" hidden><button type="button" class="back">← Overview</button><h2>Execution · built · 3 components</h2><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 937 759" width="937" height="759" role="group" aria-labelledby="bb-t">
 <title id="bb-t">Execution</title>
 <style>
-text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
-.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
-.bb-subtitle{font-size:14px;font-weight:400}
-.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
-.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
-.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
-.bb-meter-unit{font-size:17px;font-weight:300}
-.bb-meter-track{stroke-width:1;fill:none}
-.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
-.bb-meter-part{stroke-dasharray:2 3}
-.bb-rule{stroke-width:1;fill:none}
-.bb-zone{stroke-width:1}
-.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
-.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
+.bb-title{font-size:32px;font-weight:700;letter-spacing:-.025em}
+.bb-subtitle{font-size:14px}
+.bb-kicker-top{font-size:11px;font-weight:800;letter-spacing:2px}
+.bb-summary{font-size:11px;font-weight:700;letter-spacing:.08em}
+.bb-meter-big{font-size:34px;font-weight:750;letter-spacing:-.03em}
+.bb-meter-track{stroke-width:1}
+.bb-zone{stroke-width:1.2}
+.bb-zone-accent{fill:none;stroke-width:2.5;stroke-linecap:round}
+.bb-zone-kicker{font-size:10.5px;font-weight:800;letter-spacing:1.6px}
+.bb-zone-title{font-size:20px;font-weight:650;letter-spacing:-.01em}
 .bb-zone-sub{font-size:11.5px}
-.bb-node-box{stroke-width:1}
-.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
-.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
-.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
-.bb-copy{font-size:13.5px;font-weight:400}
-.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
-.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
-.bb-dot{stroke-width:1.1;fill:none}
-.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
-.bb-edge.control{stroke-dasharray:3 4}
-.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
-.bb-edge.is-planned{opacity:.4}
-.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
-.bb-legend-text{font-size:12px;font-weight:400}
-.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
-.iso-face{stroke-width:.8;stroke-linejoin:round}
-.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
-.iso-hatch line{stroke-width:.8;opacity:.45}
-.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
-html[data-theme=light] .bb-canvas{fill:#fbf9f6}
-html[data-theme=light] .bb-title,html[data-theme=light] .bb-zone-title,html[data-theme=light] .bb-node-title,html[data-theme=light] .bb-meter-big,html[data-theme=light] .bb-meter-unit{fill:#2f2a27}
-html[data-theme=light] .bb-subtitle,html[data-theme=light] .bb-copy,html[data-theme=light] .bb-hint,html[data-theme=light] .bb-legend-text,html[data-theme=light] .bb-meta,html[data-theme=light] .bb-kicker,html[data-theme=light] .bb-zone-kicker,html[data-theme=light] .bb-kicker-top,html[data-theme=light] .bb-zone-sub{fill:#716961}
-html[data-theme=light] .bb-rule,html[data-theme=light] .bb-meter-track{stroke:#dcdad7}
-html[data-theme=light] .bb-meter-solid{stroke:#2f2a27}
-html[data-theme=light] .bb-meter-part{stroke:#716961}
-html[data-theme=light] .bb-zone{fill:#f5f3f0;stroke:#dcdad7}
-html[data-theme=light] .bb-node-box{fill:#fffdfa;stroke:#dcdad7}
-html[data-theme=light] .bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
-html[data-theme=light] .bb-node.status-planned .bb-node-title{fill:#716961}
-html[data-theme=light] .bb-status-text{fill:#716961}
-html[data-theme=light] .bb-status.is-implemented .bb-status-text{fill:#716961}
-html[data-theme=light] .bb-dot{stroke:#716961}
-html[data-theme=light] .bb-dot-fill{fill:#716961}
-html[data-theme=light] .bb-status.is-implemented .bb-dot{stroke:#2f2a27}
-html[data-theme=light] .bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
-html[data-theme=light] .bb-edge.data{stroke:#888079}
-html[data-theme=light] .bb-edge.control{stroke:#747c86}
+.bb-node-box{stroke-width:1.2}
+.bb-node-bevel{fill:none;stroke-width:1}
+.bb-node.status-planned .bb-node-wash,.bb-node.status-planned .bb-node-bevel{display:none}
+.bb-edge-glow{fill:none;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+.bb-edge-glow.is-planned{display:none}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:6 4}
+.bb-node.status-planned .bb-band{fill-opacity:.28;stroke-opacity:0}
+.bb-node.status-partial .bb-band-rest{fill-opacity:.28}
+.bb-kicker{font-size:10.5px;font-weight:800;letter-spacing:1.1px}
+.bb-node-title{font-size:17px;font-weight:700}
+.bb-copy{font-size:13.5px}
+.bb-hint{font-size:11.5px;font-weight:600}
+.bb-badge{stroke-width:1}
+.bb-badge-text{font-size:9.5px;font-weight:700;letter-spacing:.4px}
+.bb-dot{stroke-width:1.3;fill:none}
+.bb-edge{fill:none;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:6 6}
+.bb-edge.failure{stroke-dasharray:3 5}
+.bb-edge.is-planned{opacity:.45}
+.bb-label-bg{stroke-width:1}
+.bb-label{font-size:11.5px;font-weight:700}
+.bb-legend-text{font-size:11px}
+
+.iso-face{stroke-width:1.1;stroke-linejoin:round}
+.iso-bevel{fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.iso-bevel-soft{stroke-width:1;opacity:.35}
+.bb-zone-floor-grid{fill:none;stroke-width:.8}
+.bb-node.status-planned .iso-face{fill-opacity:.06;stroke-dasharray:5 4;stroke-width:1.3}
+.iso-tag-halo{paint-order:stroke;stroke-width:5px;stroke-linejoin:round}
+.iso-hatch line{stroke-width:1;opacity:.35}
+.bb-node[tabindex]:hover .iso-roof,.bb-node[tabindex]:focus .iso-roof,.bb-node.is-selected .iso-roof{stroke-width:2.6}
+html[data-theme=light] .iso-edge-line{stroke:#d2cbc4}
+html[data-theme=light] .iso-tag-halo{stroke:#fbf9f6}
+html[data-theme=light] .iso-hatch line{stroke:#2f2a27}
+html[data-theme=light] .bb-node:not([class*=cat-]) .iso-roof{fill:#f3f0ec;stroke:#d2cbc4}
+html[data-theme=light] .bb-node:not([class*=cat-]) .iso-left,html[data-theme=light] .bb-node:not([class*=cat-]) .iso-right{fill:#fffdfa;stroke:#d2cbc4}html[data-theme=light] .bb-canvas{fill:#fbf9f6}
+html[data-theme=light] .bb-title{fill:#2f2a27}
+html[data-theme=light] .bb-subtitle,html[data-theme=light] .bb-zone-sub,html[data-theme=light] .bb-copy{fill:#716961}
+html[data-theme=light] .bb-zone-title{fill:#2f2a27}
+html[data-theme=light] .bb-node-box{fill:#fffdfa;stroke:#d2cbc4}
+html[data-theme=light] .bb-node-title{fill:#2f2a27}
+html[data-theme=light] .bb-hint{fill:#716961}
+html[data-theme=light] .bb-badge{fill:#f3f0ec;stroke:#d2cbc4}
+html[data-theme=light] .bb-badge-text{fill:#2f2a27}
+html[data-theme=light] .bb-edge.data{stroke:#6f665e}
+html[data-theme=light] .bb-edge.control{stroke:#56606d}
 html[data-theme=light] .bb-edge.failure{stroke:#9b4a36}
-html[data-theme=light] .bb-arrow.data{fill:#888079}
-html[data-theme=light] .bb-arrow.control{fill:#747c86}
+html[data-theme=light] .bb-arrow.data{fill:#6f665e}
+html[data-theme=light] .bb-arrow.control{fill:#56606d}
 html[data-theme=light] .bb-arrow.failure{fill:#9b4a36}
-html[data-theme=light] .bb-label,html[data-theme=light] .iso-label-knockout{stroke:#fbf9f6}
-html[data-theme=light] .bb-label.data{fill:#716961}
-html[data-theme=light] .bb-label.control{fill:#4c535c}
+html[data-theme=light] .bb-label-bg{fill:#fbf9f6;stroke:#d2cbc4}
+html[data-theme=light] .bb-label.data{fill:#2f2a27}
+html[data-theme=light] .bb-label.control{fill:#56606d}
 html[data-theme=light] .bb-label.failure{fill:#9b4a36}
-html[data-theme=light] .bb-flow{stroke:#2f2a27;stroke-opacity:.55}
-html[data-theme=light] .bb-finding-text,html[data-theme=light] .bb-finding-inline{fill:#9b4a36}
-html[data-theme=light] .bb-node.has-finding .bb-node-box{stroke:#9b4a36}
-html[data-theme=light] .bb-pseudo-fill{fill:#2f2a27}
-html[data-theme=light] .bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
-html[data-theme=light] .bb-pseudo-choice{fill:#fffdfa}
-html[data-theme=light] .bb-node.is-selected .bb-node-box,html[data-theme=light] .bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
-html[data-theme=light] .iso-shadow{fill:#3b2f26;fill-opacity:0.08}
-html[data-theme=light] .iso-hatch line{stroke:#fbf9f6}
-html[data-theme=light] .iso-tag-bg,html[data-theme=light] .iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
-html[data-theme=light] .bb-label.plain{stroke:none}
-html[data-theme=light] .bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}html[data-theme=dark] .bb-canvas{fill:#1a1816}
-html[data-theme=dark] .bb-title,html[data-theme=dark] .bb-zone-title,html[data-theme=dark] .bb-node-title,html[data-theme=dark] .bb-meter-big,html[data-theme=dark] .bb-meter-unit{fill:#ead1b5}
-html[data-theme=dark] .bb-subtitle,html[data-theme=dark] .bb-copy,html[data-theme=dark] .bb-hint,html[data-theme=dark] .bb-legend-text,html[data-theme=dark] .bb-meta,html[data-theme=dark] .bb-kicker,html[data-theme=dark] .bb-zone-kicker,html[data-theme=dark] .bb-kicker-top,html[data-theme=dark] .bb-zone-sub{fill:#b09080}
-html[data-theme=dark] .bb-rule,html[data-theme=dark] .bb-meter-track{stroke:#35302b}
-html[data-theme=dark] .bb-meter-solid{stroke:#ead1b5}
-html[data-theme=dark] .bb-meter-part{stroke:#b09080}
-html[data-theme=dark] .bb-zone{fill:#1f1c19;stroke:#35302b}
-html[data-theme=dark] .bb-node-box{fill:#272421;stroke:#35302b}
-html[data-theme=dark] .bb-node.status-planned .bb-node-box{fill:none;stroke:#4c443c}
-html[data-theme=dark] .bb-node.status-planned .bb-node-title{fill:#b09080}
-html[data-theme=dark] .bb-status-text{fill:#b09080}
-html[data-theme=dark] .bb-status.is-implemented .bb-status-text{fill:#b09080}
-html[data-theme=dark] .bb-dot{stroke:#b09080}
-html[data-theme=dark] .bb-dot-fill{fill:#b09080}
-html[data-theme=dark] .bb-status.is-implemented .bb-dot{stroke:#ead1b5}
-html[data-theme=dark] .bb-status.is-implemented .bb-dot-fill{fill:#ead1b5}
-html[data-theme=dark] .bb-edge.data{stroke:#958574}
-html[data-theme=dark] .bb-edge.control{stroke:#6b737e}
+html[data-theme=light] .bb-flow{stroke:#2f2a27}
+html[data-theme=light] .bb-legend-text{fill:#716961}html[data-theme=light] .bb-dot{stroke:#2f2a27}html[data-theme=light] .bb-dot-fill{fill:#2f2a27}html[data-theme=light] .bb-pseudo-fill{fill:#2f2a27}html[data-theme=light] .bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.6}html[data-theme=light] .bb-pseudo-choice{fill:#fffdfa}html[data-theme=light] .bb-finding-bg{fill:#fbf9f6;stroke:#9b4a36;stroke-width:1.2}html[data-theme=light] .bb-finding-text{fill:#9b4a36;font-size:9.5px;font-weight:800;letter-spacing:.4px}html[data-theme=light] .bb-node.has-finding .bb-node-box{stroke:#9b4a36;stroke-width:2}html[data-theme=light] .bb-finding-inline{fill:#9b4a36}html[data-theme=light] .bb-accent{fill:#3d8461}
+html[data-theme=light] .bb-bg-glow-a{fill:url(#bb-light-glow-a)}
+html[data-theme=light] .bb-bg-glow-b{fill:url(#bb-light-glow-b)}
+html[data-theme=light] .bb-bg-dots{fill:url(#bb-light-dots)}
+html[data-theme=light] .bb-node-box{fill:url(#bb-light-card);filter:url(#bb-light-shadow)}
+html[data-theme=light] .bb-node.status-planned .bb-node-box{fill:#fbf9f6;fill-opacity:.55;filter:none}
+html[data-theme=light] .bb-node-bevel{stroke:#fffdfa;stroke-opacity:0}
+html[data-theme=light] .bb-band{filter:none}
+html[data-theme=light] .bb-edge-glow{stroke-opacity:0.08}
+html[data-theme=light] .bb-flow{filter:none}
+html[data-theme=light] .bb-label-bg{fill:#fdfbf8;filter:url(#bb-light-shadow-sm)}
+html[data-theme=light] .bb-meter-hatch{fill:url(#bb-light-hatch)}
+html[data-theme=light] .bb-meter-solid{fill:#2f2a27}
+html[data-theme=light] .bb-meter-track{fill:#efedea;stroke:#d2cbc4}
+html[data-theme=light] .bb-meter-big{fill:#2f2a27}
+html[data-theme=light] .bb-legend-bg{fill:#fdfbf8;stroke:#d2cbc4;stroke-opacity:.6}
+html[data-theme=light] .bb-badge.is-implemented{fill:#2f2a27;stroke:#2f2a27}
+html[data-theme=light] .bb-status.is-implemented .bb-badge-text{fill:#fbf9f6}
+html[data-theme=light] .bb-status.is-implemented .bb-dot-fill{fill:#fbf9f6}
+html[data-theme=light] .bb-zone-floor-grid{stroke:#dad8d5;stroke-opacity:.8}
+html[data-theme=light] .iso-tag-bg{fill:#fffdfa;fill-opacity:.94;stroke:#d2cbc4;stroke-width:1.2;filter:url(#bb-light-shadow-sm)}
+html[data-theme=light] .iso-shadow{fill:#3b2f26;fill-opacity:0.16;filter:url(#bb-light-soft)}html[data-theme=dark] .iso-edge-line{stroke:#5c564f}
+html[data-theme=dark] .iso-tag-halo{stroke:#1a1816}
+html[data-theme=dark] .iso-hatch line{stroke:#ead1b5}
+html[data-theme=dark] .bb-node:not([class*=cat-]) .iso-roof{fill:#4a4540;stroke:#5c564f}
+html[data-theme=dark] .bb-node:not([class*=cat-]) .iso-left,html[data-theme=dark] .bb-node:not([class*=cat-]) .iso-right{fill:#383431;stroke:#5c564f}html[data-theme=dark] .bb-canvas{fill:#1a1816}
+html[data-theme=dark] .bb-title{fill:#ead1b5}
+html[data-theme=dark] .bb-subtitle,html[data-theme=dark] .bb-zone-sub,html[data-theme=dark] .bb-copy{fill:#b09080}
+html[data-theme=dark] .bb-zone-title{fill:#ead1b5}
+html[data-theme=dark] .bb-node-box{fill:#383431;stroke:#5c564f}
+html[data-theme=dark] .bb-node-title{fill:#ead1b5}
+html[data-theme=dark] .bb-hint{fill:#b09080}
+html[data-theme=dark] .bb-badge{fill:#4a4540;stroke:#5c564f}
+html[data-theme=dark] .bb-badge-text{fill:#ead1b5}
+html[data-theme=dark] .bb-edge.data{stroke:#c9b49c}
+html[data-theme=dark] .bb-edge.control{stroke:#8d9aab}
 html[data-theme=dark] .bb-edge.failure{stroke:#c27a5c}
-html[data-theme=dark] .bb-arrow.data{fill:#958574}
-html[data-theme=dark] .bb-arrow.control{fill:#6b737e}
+html[data-theme=dark] .bb-arrow.data{fill:#c9b49c}
+html[data-theme=dark] .bb-arrow.control{fill:#8d9aab}
 html[data-theme=dark] .bb-arrow.failure{fill:#c27a5c}
-html[data-theme=dark] .bb-label,html[data-theme=dark] .iso-label-knockout{stroke:#1a1816}
-html[data-theme=dark] .bb-label.data{fill:#b09080}
-html[data-theme=dark] .bb-label.control{fill:#a4a8ae}
+html[data-theme=dark] .bb-label-bg{fill:#1a1816;stroke:#5c564f}
+html[data-theme=dark] .bb-label.data{fill:#ead1b5}
+html[data-theme=dark] .bb-label.control{fill:#8d9aab}
 html[data-theme=dark] .bb-label.failure{fill:#c27a5c}
-html[data-theme=dark] .bb-flow{stroke:#ead1b5;stroke-opacity:.55}
-html[data-theme=dark] .bb-finding-text,html[data-theme=dark] .bb-finding-inline{fill:#c27a5c}
-html[data-theme=dark] .bb-node.has-finding .bb-node-box{stroke:#c27a5c}
-html[data-theme=dark] .bb-pseudo-fill{fill:#ead1b5}
-html[data-theme=dark] .bb-pseudo-ring{fill:#1a1816;stroke:#ead1b5;stroke-width:1.3}
-html[data-theme=dark] .bb-pseudo-choice{fill:#272421}
-html[data-theme=dark] .bb-node.is-selected .bb-node-box,html[data-theme=dark] .bb-node[tabindex]:focus .bb-node-box{stroke:#ead1b5}
-html[data-theme=dark] .iso-shadow{fill:#000000;fill-opacity:0.32}
-html[data-theme=dark] .iso-hatch line{stroke:#1a1816}
-html[data-theme=dark] .iso-tag-bg,html[data-theme=dark] .iso-label-bg{fill:#1a1816;fill-opacity:.9}
-html[data-theme=dark] .bb-label.plain{stroke:none}
-html[data-theme=dark] .bb-node:not([class*=cat-]) .iso-face{fill:#272421;stroke:#35302b}html[data-theme=light] .iso-tag-bg,html[data-theme=light] .iso-label-bg{fill:#fbf9f6;fill-opacity:1}
-html[data-theme=light] .iso-tag .bb-node-title,html[data-theme=light] .iso-tag .bb-kicker,html[data-theme=light] .bb-edge-label .bb-label{fill:#2f2a27}
-html[data-theme=light] .bb-node.status-partial .iso-hatch line{stroke:#2f2a27;opacity:.9}
-html[data-theme=light].workflow-active .bb-node:not(.is-dimmed) .iso-roof{stroke:#2f2a27;stroke-width:4}
-html[data-theme=dark] .iso-tag-bg,html[data-theme=dark] .iso-label-bg{fill:#1a1816;fill-opacity:1}
-html[data-theme=dark] .iso-tag .bb-node-title,html[data-theme=dark] .iso-tag .bb-kicker,html[data-theme=dark] .bb-edge-label .bb-label{fill:#ead1b5}
-html[data-theme=dark] .bb-node.status-partial .iso-hatch line{stroke:#ead1b5;opacity:.9}
-html[data-theme=dark].workflow-active .bb-node:not(.is-dimmed) .iso-roof{stroke:#ead1b5;stroke-width:4}
-</style>
-<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
-<rect class="bb-canvas" x="0" y="0" width="937" height="799"/>
-<text class="bb-title" x="48" y="100">Execution</text>
-<g class="bb-meter" aria-label="67% built"><text class="bb-kicker-top" x="889" y="52" text-anchor="end">COMPLETION</text><text x="889" y="96" text-anchor="end"><tspan class="bb-meter-big">67</tspan><tspan class="bb-meter-unit" dx="3">%</tspan></text><path class="bb-meter-track" d="M 669 110 H 889"/><path class="bb-meter-solid" d="M 669 110 H 815.7"/><text class="bb-meta" x="889" y="132" text-anchor="end">2 built · 0 partial · 1 planned</text></g>
-<polygon class="iso-shadow" points="172.6,235 380.4,355 267.8,420 60,300"/>
-<polygon class="iso-shadow" points="432.4,385 640.2,505 527.7,570 319.8,450"/>
+html[data-theme=dark] .bb-flow{stroke:#ead1b5}
+html[data-theme=dark] .bb-legend-text{fill:#b09080}html[data-theme=dark] .bb-dot{stroke:#ead1b5}html[data-theme=dark] .bb-dot-fill{fill:#ead1b5}html[data-theme=dark] .bb-pseudo-fill{fill:#ead1b5}html[data-theme=dark] .bb-pseudo-ring{fill:#1a1816;stroke:#ead1b5;stroke-width:1.6}html[data-theme=dark] .bb-pseudo-choice{fill:#383431}html[data-theme=dark] .bb-finding-bg{fill:#1a1816;stroke:#c27a5c;stroke-width:1.2}html[data-theme=dark] .bb-finding-text{fill:#c27a5c;font-size:9.5px;font-weight:800;letter-spacing:.4px}html[data-theme=dark] .bb-node.has-finding .bb-node-box{stroke:#c27a5c;stroke-width:2}html[data-theme=dark] .bb-finding-inline{fill:#c27a5c}html[data-theme=dark] .bb-accent{fill:#79c39e}
+html[data-theme=dark] .bb-bg-glow-a{fill:url(#bb-dark-glow-a)}
+html[data-theme=dark] .bb-bg-glow-b{fill:url(#bb-dark-glow-b)}
+html[data-theme=dark] .bb-bg-dots{fill:url(#bb-dark-dots)}
+html[data-theme=dark] .bb-node-box{fill:url(#bb-dark-card);filter:url(#bb-dark-shadow)}
+html[data-theme=dark] .bb-node.status-planned .bb-node-box{fill:#1a1816;fill-opacity:.55;filter:none}
+html[data-theme=dark] .bb-node-bevel{stroke:#544d46;stroke-opacity:1}
+html[data-theme=dark] .bb-band{filter:url(#bb-dark-glow)}
+html[data-theme=dark] .bb-edge-glow{stroke-opacity:0.16}
+html[data-theme=dark] .bb-flow{filter:url(#bb-dark-glow)}
+html[data-theme=dark] .bb-label-bg{fill:#34302d;filter:url(#bb-dark-shadow-sm)}
+html[data-theme=dark] .bb-meter-hatch{fill:url(#bb-dark-hatch)}
+html[data-theme=dark] .bb-meter-solid{fill:#ead1b5}
+html[data-theme=dark] .bb-meter-track{fill:#292521;stroke:#5c564f}
+html[data-theme=dark] .bb-meter-big{fill:#ead1b5}
+html[data-theme=dark] .bb-legend-bg{fill:#282522;stroke:#5c564f;stroke-opacity:.6}
+html[data-theme=dark] .bb-badge.is-implemented{fill:#ead1b5;stroke:#ead1b5}
+html[data-theme=dark] .bb-status.is-implemented .bb-badge-text{fill:#1a1816}
+html[data-theme=dark] .bb-status.is-implemented .bb-dot-fill{fill:#1a1816}
+html[data-theme=dark] .bb-zone-floor-grid{stroke:#3b362f;stroke-opacity:.8}
+html[data-theme=dark] .iso-tag-bg{fill:#312d2a;fill-opacity:.94;stroke:#5c564f;stroke-width:1.2;filter:url(#bb-dark-shadow-sm)}
+html[data-theme=dark] .iso-shadow{fill:#000000;fill-opacity:0.5;filter:url(#bb-dark-soft)}</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="8.5" markerHeight="8.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 0.6 L 10 5 L 0 9.4 L 2.6 5 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="8.5" markerHeight="8.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 0.6 L 10 5 L 0 9.4 L 2.6 5 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="8.5" markerHeight="8.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 0.6 L 10 5 L 0 9.4 L 2.6 5 z"/></marker></defs><defs><radialGradient id="bb-light-glow-a" cx="0.12" cy="0" r="0.75"><stop offset="0" stop-color="#3d8461" stop-opacity="0.1"/><stop offset="1" stop-color="#3d8461" stop-opacity="0"/></radialGradient><radialGradient id="bb-light-glow-b" cx="0.95" cy="1" r="0.7"><stop offset="0" stop-color="#b9531f" stop-opacity="0.07"/><stop offset="1" stop-color="#b9531f" stop-opacity="0"/></radialGradient><pattern id="bb-light-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="1" fill="#e3e0dd"/></pattern><pattern id="bb-light-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fbf9f6"/><rect width="2.4" height="6" fill="#2f2a27"/></pattern><linearGradient id="bb-light-card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffdfa" stop-opacity="1"/><stop offset="1" stop-color="#fffdfa" stop-opacity="1"/></linearGradient><filter id="bb-light-shadow" x="-25%" y="-25%" width="150%" height="170%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="10"/><feOffset dy="8" result="o"/><feFlood flood-color="#3b2f26" flood-opacity="0.13"/><feComposite in2="o" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-light-shadow-sm" x="-25%" y="-25%" width="150%" height="170%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="4"/><feOffset dy="3" result="o"/><feFlood flood-color="#3b2f26" flood-opacity="0.1"/><feComposite in2="o" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-light-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-light-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter></defs><defs><radialGradient id="bb-dark-glow-a" cx="0.12" cy="0" r="0.75"><stop offset="0" stop-color="#79c39e" stop-opacity="0.13"/><stop offset="1" stop-color="#79c39e" stop-opacity="0"/></radialGradient><radialGradient id="bb-dark-glow-b" cx="0.95" cy="1" r="0.7"><stop offset="0" stop-color="#e77843" stop-opacity="0.09"/><stop offset="1" stop-color="#e77843" stop-opacity="0"/></radialGradient><pattern id="bb-dark-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="1" fill="#2f2b26"/></pattern><pattern id="bb-dark-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#1a1816"/><rect width="2.4" height="6" fill="#ead1b5"/></pattern><linearGradient id="bb-dark-card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#433d39" stop-opacity="1"/><stop offset="1" stop-color="#383431" stop-opacity="1"/></linearGradient><filter id="bb-dark-shadow" x="-25%" y="-25%" width="150%" height="170%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="12"/><feOffset dy="10" result="o"/><feFlood flood-color="#000000" flood-opacity="0.55"/><feComposite in2="o" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-dark-shadow-sm" x="-25%" y="-25%" width="150%" height="170%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="4"/><feOffset dy="3" result="o"/><feFlood flood-color="#000000" flood-opacity="0.45"/><feComposite in2="o" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-dark-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="bb-dark-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter></defs>
+<rect class="bb-canvas" x="0" y="0" width="937" height="759"/><rect class="bb-bg-dots" x="0" y="0" width="937" height="759"/><rect class="bb-bg-glow-a" x="0" y="0" width="937" height="759"/><rect class="bb-bg-glow-b" x="0" y="0" width="937" height="759"/>
+<text class="bb-title" x="48" y="64">Execution</text>
+<g class="bb-meter" aria-label="67% built"><text class="bb-meter-big" x="889" y="56" text-anchor="end">67%</text><text class="bb-summary bb-subtitle" x="815.8" y="55" text-anchor="end">BUILT</text><clipPath id="bb-meter-clip"><rect x="629" y="74" width="260" height="9" rx="4.5"/></clipPath><rect class="bb-meter-track" x="629" y="74" width="260" height="9" rx="4.5"/><g clip-path="url(#bb-meter-clip)"><rect class="bb-meter-solid" x="629" y="74" width="173.3" height="9"/></g><text class="bb-summary bb-subtitle" x="889" y="100" text-anchor="end">2 BUILT · 0 PARTIAL · 1 PLANNED</text></g>
+<polygon class="iso-shadow" points="176.6,198 384.4,318 271.8,383 64,263"/>
+<polygon class="iso-shadow" points="436.4,348 644.2,468 531.7,533 323.8,413"/>
 <g class="bb-node map-item status-implemented" data-id="review" tabindex="0" role="button" aria-label="Open details for Review">
-<polygon class="iso-focus" points="48,255 160.6,190 368.4,310 368.4,348 255.8,413 48,293" fill="none" stroke="none"/>
-<polygon class="iso-face iso-left" points="48,255 255.8,375 255.8,413 48,293"/>
-<polygon class="iso-face iso-right" points="368.4,310 255.8,375 255.8,413 368.4,348"/>
-<polygon class="iso-face iso-roof" points="160.6,190 368.4,310 255.8,375 48,255"/>
+<polygon class="iso-focus" points="48,215 160.6,150 368.4,270 368.4,308 255.8,373 48,253" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="48,215 255.8,335 255.8,373 48,253"/>
+<polygon class="iso-face iso-right" points="368.4,270 255.8,335 255.8,373 368.4,308"/>
+<polygon class="iso-face iso-roof" points="160.6,150 368.4,270 255.8,335 48,215"/>
+<path class="iso-bevel" d="M 48 215 L 160.6 150 L 368.4 270"/>
+<path class="iso-bevel iso-bevel-soft" d="M 48 215 L 255.8 335 L 368.4 270 M 255.8 335 L 255.8 373"/>
 </g>
 <g class="bb-node map-item status-implemented" data-id="test" tabindex="0" role="button" aria-label="Open details for Test">
-<polygon class="iso-focus" points="307.8,405 420.4,340 628.2,460 628.2,498 515.7,563 307.8,443" fill="none" stroke="none"/>
-<polygon class="iso-face iso-left" points="307.8,405 515.7,525 515.7,563 307.8,443"/>
-<polygon class="iso-face iso-right" points="628.2,460 515.7,525 515.7,563 628.2,498"/>
-<polygon class="iso-face iso-roof" points="420.4,340 628.2,460 515.7,525 307.8,405"/>
+<polygon class="iso-focus" points="307.8,365 420.4,300 628.2,420 628.2,458 515.7,523 307.8,403" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="307.8,365 515.7,485 515.7,523 307.8,403"/>
+<polygon class="iso-face iso-right" points="628.2,420 515.7,485 515.7,523 628.2,458"/>
+<polygon class="iso-face iso-roof" points="420.4,300 628.2,420 515.7,485 307.8,365"/>
+<path class="iso-bevel" d="M 307.8 365 L 420.4 300 L 628.2 420"/>
+<path class="iso-bevel iso-bevel-soft" d="M 307.8 365 L 515.7 485 L 628.2 420 M 515.7 485 L 515.7 523"/>
 </g>
 <g class="bb-node map-item status-planned" data-id="publish" tabindex="0" role="button" aria-label="Open details for Publish">
-<polygon class="iso-focus" points="567.6,555 680.2,490 888,610 888,648 775.5,713 567.6,593" fill="none" stroke="none"/>
-<polygon class="iso-face iso-left" points="567.6,555 775.5,675 775.5,713 567.6,593"/>
-<polygon class="iso-face iso-right" points="888,610 775.5,675 775.5,713 888,648"/>
-<polygon class="iso-face iso-roof" points="680.2,490 888,610 775.5,675 567.6,555"/>
+<polygon class="iso-focus" points="567.6,515 680.2,450 888,570 888,608 775.5,673 567.6,553" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="567.6,515 775.5,635 775.5,673 567.6,553"/>
+<polygon class="iso-face iso-right" points="888,570 775.5,635 775.5,673 888,608"/>
+<polygon class="iso-face iso-roof" points="680.2,450 888,570 775.5,635 567.6,515"/>
 </g>
 <g class="bb-edges">
-<path class="bb-edge control map-item" d="M 312.1 342.5 L 364.1 372.5" marker-end="url(#bb-arrow-control)" data-from="review" data-to="test"/>
-<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="336.3" y="353.5" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="345.9" y="365.6" text-anchor="middle">1</text></g>
+<path class="bb-edge-glow bb-edge control map-item" d="M 312.1 302.5 L 364.1 332.5" style="stroke-dasharray:none"/>
+<path class="bb-edge control map-item" d="M 312.1 302.5 L 364.1 332.5" marker-end="url(#bb-arrow-control)" data-from="review" data-to="test"/>
+<g class="bb-edge-label map-item"><rect class="bb-label-bg" x="334.3" y="312.5" width="23.1" height="19" rx="9.5"/><text class="bb-label control" x="345.9" y="325.6" text-anchor="middle">1</text></g>
 </g>
 <g class="iso-tag map-item" data-for="review" pointer-events="none">
-<rect class="iso-tag-bg" x="130.4" y="256.5" width="155.6" height="42" rx="3"/>
-<text class="bb-kicker" x="208.2" y="272.5" text-anchor="middle">PLAYBOOK · BUILT</text>
-<text class="bb-node-title" x="208.2" y="291.5" text-anchor="middle">Review</text>
+<rect class="iso-tag-bg" x="130.4" y="216.5" width="155.6" height="42" rx="10"/>
+<text class="bb-kicker" x="208.2" y="232.5" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="208.2" y="251.5" text-anchor="middle">Review</text>
 </g>
 <g class="iso-tag map-item" data-for="test" pointer-events="none">
-<rect class="iso-tag-bg" x="402.4" y="406.5" width="131.3" height="42" rx="3"/>
-<text class="bb-kicker" x="468" y="422.5" text-anchor="middle">SKILL · BUILT</text>
-<text class="bb-node-title" x="468" y="441.5" text-anchor="middle">Test</text>
+<rect class="iso-tag-bg" x="402.4" y="366.5" width="131.3" height="42" rx="10"/>
+<text class="bb-kicker" x="468" y="382.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="468" y="401.5" text-anchor="middle">Test</text>
 </g>
 <g class="iso-tag map-item" data-for="publish" pointer-events="none">
-<rect class="iso-tag-bg" x="641.9" y="556.5" width="171.8" height="42" rx="3"/>
-<text class="bb-kicker" x="727.8" y="572.5" text-anchor="middle">PLAYBOOK · PLANNED</text>
-<text class="bb-node-title" x="727.8" y="591.5" text-anchor="middle">Publish</text>
+<rect class="iso-tag-bg" x="641.9" y="516.5" width="171.8" height="42" rx="10"/>
+<text class="bb-kicker" x="727.8" y="532.5" text-anchor="middle">PLAYBOOK · PLANNED</text>
+<text class="bb-node-title" x="727.8" y="551.5" text-anchor="middle">Publish</text>
 </g>
-<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 747 H 897"/><text class="bb-legend-text" x="48" y="769">Built = solid</text><text class="bb-legend-text" x="148.225" y="769">Partial = hatched roof</text><text class="bb-legend-text" x="305.375" y="769">Planned = wireframe</text></g>
+<g class="bb-legend" aria-label="Legend"><rect class="bb-legend-bg" x="24" y="709" width="889" height="32" rx="10"/><text class="bb-legend-text" x="48" y="729">Built = solid</text><text class="bb-legend-text" x="152.225" y="729">Partial = hatched roof</text><text class="bb-legend-text" x="313.375" y="729">Planned = wireframe</text></g>
 </svg>
 </div><ul class="purposes"><li><strong>Review</strong> · Check the change · built</li><li><strong>Test</strong> · Run checks · built</li><li><strong>Publish</strong> · Prepare delivery · planned</li></ul><ol class="connections"><li data-from="review" data-to="test">review → test · step 1</li></ol></section>
 <script>
