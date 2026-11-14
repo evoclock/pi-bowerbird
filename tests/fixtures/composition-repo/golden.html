@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="en" data-bowerbird-version="0.2.0" data-bowerbird-input-sha="0123456789abcdef0123456789abcdef01234567">
+<html lang="en" data-bowerbird-version="0.3.0" data-bowerbird-input-sha="0123456789abcdef0123456789abcdef01234567">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="generator" content="bowerbird 0.2.0">
+<meta name="generator" content="bowerbird 0.3.0">
 <meta name="bowerbird-input-sha" content="0123456789abcdef0123456789abcdef01234567">
 <title>Flock composition</title>
 <style>
-:root{color-scheme:light}body{margin:2rem auto;max-width:1500px;padding:0 2rem;background:#fff;color:#17212b;font:16px/1.5 system-ui,sans-serif}button{cursor:pointer;background:white;border:1px solid #bbb;border-radius:5px;padding:.6rem;margin:.3rem}button:focus-visible,.bb-node:focus-visible{outline:3px solid #3569a0}svg{display:block;max-width:100%;height:auto}.map{overflow:auto}.panel[hidden]{display:none}.is-dimmed{opacity:.12}.bb-node,.bb-edge{transition:opacity .2s}.connections{display:flex;gap:2rem;flex-wrap:wrap}.connections li{min-width:140px}
+:root{color-scheme:light}body{margin:2rem auto;max-width:1500px;padding:0 2rem;background:#fff;color:#17212b;font:16px/1.5 system-ui,sans-serif}button{cursor:pointer;background:white;border:1px solid #bbb;border-radius:5px;padding:.6rem;margin:.3rem}button:focus-visible,.bb-node:focus-visible{outline:3px solid #3569a0}svg{display:block;max-width:100%;height:auto}.map{overflow:auto}.panel[hidden]{display:none}.is-dimmed{opacity:.12}.bb-node,.bb-edge{transition:opacity .2s}.connections{display:flex;gap:2rem;flex-wrap:wrap}.connections li{min-width:140px}.composition-legend{border:1px solid #68737d;border-radius:6px;padding:.5rem 1rem;margin:1rem 0}.composition-legend>div{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;margin:.5rem 0}.legend-item{display:inline-flex;align-items:center;gap:.4rem}.swatch{display:inline-block;width:1.2rem;height:1.2rem;border:2px solid #17212b;border-radius:2px}.swatch.status-planned{border-style:dashed}.swatch.status-partial{background-image:repeating-linear-gradient(45deg,transparent 0 4px,#17212b 4px 6px)!important}
 </style></head>
-<body><h1>Flock composition</h1><p>Choose a group to open its isometric map. Select a workflow to follow its playbooks and skills in step order.</p><nav aria-label="Workflows"><button type="button" class="workflow" data-workflow="ship" data-chain="review test publish">Ship</button></nav><ol id="chain-order" aria-label="Workflow step order" hidden></ol><section id="overview"><h2>Overview</h2><p>Each group shows its component count and badges: B built, P partial, L planned.</p><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 677 649" width="677" height="649" role="group" aria-labelledby="bb-t">
+<body><h1>Flock composition</h1><p>Choose a group to open its isometric map. Select a workflow to follow its playbooks and skills in step order.</p><nav aria-label="Workflows"><button type="button" class="workflow" data-workflow="ship" data-chain="review test publish">Ship</button></nav><aside class="composition-legend" aria-label="Map colour legend"><h2>Legend</h2><div><strong>Status</strong><span class="legend-item"><span class="swatch status-built" style="background:#0072B2"></span>built</span><span class="legend-item"><span class="swatch status-partial" style="background:#E69F00"></span>partial</span><span class="legend-item"><span class="swatch status-planned" style="background:#CC79A7"></span>planned</span></div><div><strong>Groups</strong><span class="legend-item"><span class="swatch" style="background:#009E73"></span>Planning</span><span class="legend-item"><span class="swatch" style="background:#D55E00"></span>Execution</span></div></aside><ol id="chain-order" aria-label="Workflow step order" hidden></ol><section id="overview"><h2>Overview</h2><p>Each group shows its component count and badges: B built, P partial, L planned.</p><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 677 649" width="677" height="649" role="group" aria-labelledby="bb-t">
 <title id="bb-t">Flock composition</title>
 <style>
 text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
@@ -136,7 +136,17 @@ text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe
 .iso-hatch line{stroke:#fbf9f6}
 .iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
 .bb-label.plain{stroke:none}
-.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}</style>
+.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}.bb-node.status-implemented .iso-roof{fill:#0072B2;fill-opacity:1}.bb-node.status-implemented .iso-left,.bb-node.status-implemented .iso-right{fill:#0072B2;fill-opacity:1}
+.bb-node.status-partial .iso-roof{fill:#E69F00;fill-opacity:1}.bb-node.status-partial .iso-left,.bb-node.status-partial .iso-right{fill:#E69F00;fill-opacity:1}
+.bb-node.status-planned .iso-roof{fill:#CC79A7;fill-opacity:1}.bb-node.status-planned .iso-left,.bb-node.status-planned .iso-right{fill:#CC79A7;fill-opacity:1}
+.bb-node[data-id="planning"] .iso-roof{fill:#009E73;fill-opacity:1}
+.bb-node[data-id="execution"] .iso-roof{fill:#D55E00;fill-opacity:1}
+.bb-node.status-planned .iso-face{stroke-dasharray:5 4;stroke-width:2}
+.bb-node.status-partial .iso-hatch line{stroke:#17212b;opacity:.9;stroke-width:2}
+.iso-tag-bg,.iso-label-bg{fill:#ffffff;fill-opacity:1}
+.bb-node-title,.bb-kicker,.bb-label{fill:#17212b}
+.workflow-active .bb-node:not(.is-dimmed) .iso-roof{stroke:#17212b;stroke-width:4}
+</style>
 <defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
 <rect class="bb-canvas" x="0" y="0" width="677" height="649"/>
 <text class="bb-title" x="48" y="100">Flock composition</text>
@@ -299,7 +309,15 @@ text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe
 .iso-hatch line{stroke:#fbf9f6}
 .iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
 .bb-label.plain{stroke:none}
-.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}</style>
+.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}.bb-node.status-implemented .iso-roof{fill:#0072B2;fill-opacity:1}.bb-node.status-implemented .iso-left,.bb-node.status-implemented .iso-right{fill:#0072B2;fill-opacity:1}
+.bb-node.status-partial .iso-roof{fill:#E69F00;fill-opacity:1}.bb-node.status-partial .iso-left,.bb-node.status-partial .iso-right{fill:#E69F00;fill-opacity:1}
+.bb-node.status-planned .iso-roof{fill:#CC79A7;fill-opacity:1}.bb-node.status-planned .iso-left,.bb-node.status-planned .iso-right{fill:#CC79A7;fill-opacity:1}
+.bb-node.status-planned .iso-face{stroke-dasharray:5 4;stroke-width:2}
+.bb-node.status-partial .iso-hatch line{stroke:#17212b;opacity:.9;stroke-width:2}
+.iso-tag-bg,.iso-label-bg{fill:#ffffff;fill-opacity:1}
+.bb-node-title,.bb-kicker,.bb-label{fill:#17212b}
+.workflow-active .bb-node:not(.is-dimmed) .iso-roof{stroke:#17212b;stroke-width:4}
+</style>
 <defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
 <rect class="bb-canvas" x="0" y="0" width="417" height="525"/>
 <text class="bb-title" x="48" y="100">Planning</text>
@@ -450,7 +468,15 @@ text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe
 .iso-hatch line{stroke:#fbf9f6}
 .iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
 .bb-label.plain{stroke:none}
-.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}</style>
+.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}.bb-node.status-implemented .iso-roof{fill:#0072B2;fill-opacity:1}.bb-node.status-implemented .iso-left,.bb-node.status-implemented .iso-right{fill:#0072B2;fill-opacity:1}
+.bb-node.status-partial .iso-roof{fill:#E69F00;fill-opacity:1}.bb-node.status-partial .iso-left,.bb-node.status-partial .iso-right{fill:#E69F00;fill-opacity:1}
+.bb-node.status-planned .iso-roof{fill:#CC79A7;fill-opacity:1}.bb-node.status-planned .iso-left,.bb-node.status-planned .iso-right{fill:#CC79A7;fill-opacity:1}
+.bb-node.status-planned .iso-face{stroke-dasharray:5 4;stroke-width:2}
+.bb-node.status-partial .iso-hatch line{stroke:#17212b;opacity:.9;stroke-width:2}
+.iso-tag-bg,.iso-label-bg{fill:#ffffff;fill-opacity:1}
+.bb-node-title,.bb-kicker,.bb-label{fill:#17212b}
+.workflow-active .bb-node:not(.is-dimmed) .iso-roof{stroke:#17212b;stroke-width:4}
+</style>
 <defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
 <rect class="bb-canvas" x="0" y="0" width="937" height="799"/>
 <text class="bb-title" x="48" y="100">Execution</text>
@@ -506,6 +532,7 @@ function openGroup(id) {
 }
 function highlightWorkflow(id) {
   const chain = [id, ...chains[id]];
+  document.body.classList.add('workflow-active');
   for (const node of document.querySelectorAll(".panel .bb-node")) node.classList.toggle("is-dimmed", !chain.includes(node.dataset.id));
   for (const edge of document.querySelectorAll(".panel .bb-edge")) edge.classList.toggle("is-dimmed", !chain.includes(edge.dataset.from) || !chain.includes(edge.dataset.to));
   document.querySelectorAll(".workflow").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.workflow === id)));
@@ -515,7 +542,7 @@ function highlightWorkflow(id) {
   for (const component of chain) { const li = document.createElement('li'); li.textContent = component; order.append(li); }
 }
 document.querySelectorAll('#overview .bb-node[data-id]').forEach((node) => { node.setAttribute('role','button'); node.setAttribute('tabindex','0'); const action = () => openGroup(node.dataset.id); node.addEventListener('click',action); node.addEventListener('keydown',(e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); action(); } }); });
-document.querySelectorAll('.back').forEach((button) => button.addEventListener('click',() => { panels.forEach((panel) => { panel.hidden = true; }); document.getElementById('overview').hidden = false; document.getElementById('chain-order').hidden = true; document.querySelectorAll('.is-dimmed').forEach((el) => el.classList.remove('is-dimmed')); }));
+document.querySelectorAll('.back').forEach((button) => button.addEventListener('click',() => { panels.forEach((panel) => { panel.hidden = true; }); document.getElementById('overview').hidden = false; document.getElementById('chain-order').hidden = true; document.querySelectorAll('.is-dimmed').forEach((el) => el.classList.remove('is-dimmed')); document.body.classList.remove('workflow-active'); }));
 document.querySelectorAll('.workflow').forEach((button) => button.addEventListener('click',() => highlightWorkflow(button.dataset.workflow)));
 document.querySelectorAll('.panel .bb-node[data-id]').forEach((node) => { const id = node.dataset.id; if(chains[id]) node.addEventListener('click', () => highlightWorkflow(id)); });
 </script></body></html>

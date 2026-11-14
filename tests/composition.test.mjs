@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { normalise, BowerError } from "../lib/model.mjs";
+import { renderComposition, STATUS_COLOURS, GROUP_COLOURS } from "../lib/composition.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const fixture = path.join(root, "fixtures/composition-repo");
@@ -53,6 +54,51 @@ test("single-file golden has exact markers and group and component slabs", () =>
     assert.match(html, /1 · B0 P1 L0 · PARTIAL/);
     assert.match(html, /B built, P partial, L planned/);
   } finally { rmSync(tmp, { recursive: true, force: true }); }
+});
+
+// Why: distinct status paints and non-colour cues must survive changes to the SVG renderer.
+test("status palette has distinct fills, hatch and dashed outlines", () => {
+  const html = renderComposition(input.composition, input.meta.title, golden.sha);
+  for (const [status, colour] of Object.entries(STATUS_COLOURS)) {
+    assert.match(html, new RegExp(`status-${status === "built" ? "implemented" : status} \\.iso-roof\\{fill:${colour}`));
+  }
+  assert.equal(new Set(Object.values(STATUS_COLOURS)).size, 3);
+  assert.match(html, /status-planned \.iso-face\{stroke-dasharray:5 4/);
+  assert.match(html, /status-partial \.iso-hatch line\{stroke:#17212b/);
+  assert.throws(() => assert.equal(new Set([STATUS_COLOURS.built, STATUS_COLOURS.partial, STATUS_COLOURS.built]).size, 3));
+});
+
+// Why: group paint must be stable, visible and identified in the legend across renders.
+test("group palette and legend are deterministic", () => {
+  const html = renderComposition(input.composition, input.meta.title, golden.sha);
+  assert.equal(html, renderComposition(input.composition, input.meta.title, golden.sha));
+  assert.match(html, /aria-label="Map colour legend"/);
+  assert.match(html, /<strong>Status<\/strong>/);
+  assert.match(html, /<strong>Groups<\/strong>/);
+  const colours = input.composition.groups.map((g, i) => {
+    const colour = GROUP_COLOURS[i % GROUP_COLOURS.length];
+    assert.ok(html.includes(`data-id=${JSON.stringify(g.id)}] .iso-roof{fill:${colour}`));
+    assert.ok(html.includes(`background:${colour}`));
+    return colour;
+  });
+  assert.equal(new Set(colours).size, colours.length);
+  assert.throws(() => assert.match(html.replace('aria-label="Map colour legend"', ''), /aria-label="Map colour legend"/));
+});
+
+// Why: all composition text on explicit white labels and the page must exceed AA contrast.
+test("composition label and page text meet WCAG AA", () => {
+  const luminance = (hex) => {
+    const channels = hex.match(/[0-9a-f]{2}/gi).map((v) => parseInt(v, 16) / 255);
+    return channels.map((v) => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4)
+      .reduce((sum, v, i) => sum + v * [.2126, .7152, .0722][i], 0);
+  };
+  const ratio = (a, b) => (Math.max(luminance(a), luminance(b)) + .05) / (Math.min(luminance(a), luminance(b)) + .05);
+  const html = renderComposition(input.composition, input.meta.title, golden.sha);
+  assert.match(html, /\.iso-tag-bg,\.iso-label-bg\{fill:#ffffff;fill-opacity:1/);
+  assert.match(html, /\.bb-node-title,\.bb-kicker,\.bb-label\{fill:#17212b/);
+  assert.ok(ratio("#17212b", "#ffffff") >= 4.5);
+  assert.throws(() => assert.ok(ratio("#bbbbbb", "#ffffff") >= 4.5));
+  assert.match(html, /\.is-dimmed\{opacity:\.12\}/);
 });
 
 // Why: malformed provenance must not leave even an empty destination.
