@@ -6,7 +6,10 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { normalise, BowerError } from "../lib/model.mjs";
-import { renderComposition, STATUS_COLOURS, GROUP_COLOURS } from "../lib/composition.mjs";
+import { renderComposition, STATUS_TOKENS, GROUP_TOKENS } from "../lib/composition.mjs";
+import { loadTheme } from "../lib/themes.mjs";
+import { layout } from "../lib/layout.mjs";
+import { isoLayout, renderIsoSvg } from "../lib/render-iso.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const fixture = path.join(root, "fixtures/composition-repo");
@@ -56,48 +59,63 @@ test("single-file golden has exact markers and group and component slabs", () =>
   } finally { rmSync(tmp, { recursive: true, force: true }); }
 });
 
-// Why: distinct status paints and non-colour cues must survive changes to the SVG renderer.
-test("status palette has distinct fills, hatch and dashed outlines", () => {
-  const html = renderComposition(input.composition, input.meta.title, golden.sha);
-  for (const [status, colour] of Object.entries(STATUS_COLOURS)) {
-    assert.match(html, new RegExp(`status-${status === "built" ? "implemented" : status} \\.iso-roof\\{fill:${colour}`));
+const colors = (html) => new Set((html.match(/#[0-9a-fA-F]{3,8}\b/g) ?? []).map((value) => value.toLowerCase()));
+const themes = { light: loadTheme("light"), dark: loadTheme("dark") };
+const ratio = (a, b) => {
+  const lum = (hex) => hex.match(/[0-9a-f]{2}/gi).map((v) => parseInt(v, 16) / 255)
+    .map((v) => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4)
+    .reduce((sum, v, i) => sum + v * [.2126, .7152, .0722][i], 0);
+  return (Math.max(lum(a), lum(b)) + .05) / (Math.min(lum(a), lum(b)) + .05);
+};
+
+// Why: both themes must use only the package's token values or its existing iso-derived palette.
+test("all composition colours come from existing theme and iso paint", () => {
+  const source = JSON.parse(readFileSync(path.join(root, "../examples/bowerbird.bower.json")));
+  source.categories = Object.fromEntries(Object.keys(themes.light.categories).map((id) => [id, { label: id }]));
+  const model = normalise(source);
+  const baseline = renderIsoSvg(model, isoLayout(model, layout(model)), { themes });
+  const allowed = colors(baseline);
+  for (const theme of Object.values(themes)) for (const section of [theme.surfaces, theme.edges, theme.categories]) {
+    for (const value of Object.values(section)) allowed.add(value.toLowerCase());
   }
-  assert.equal(new Set(Object.values(STATUS_COLOURS)).size, 3);
-  assert.match(html, /status-planned \.iso-face\{stroke-dasharray:5 4/);
-  assert.match(html, /status-partial \.iso-hatch line\{stroke:#17212b/);
-  assert.throws(() => assert.equal(new Set([STATUS_COLOURS.built, STATUS_COLOURS.partial, STATUS_COLOURS.built]).size, 3));
+  const check = (html) => assert.deepEqual([...colors(html)].filter((value) => !allowed.has(value)), []);
+  const html = renderComposition(input.composition, input.meta.title, golden.sha);
+  check(html);
+  assert.match(html, /html\[data-theme=light\]/);
+  assert.match(html, /html\[data-theme=dark\]/);
+  // Deliberate break: a new, non-token fill must fail the same collector.
+  assert.throws(() => check(html + '<path fill="#' + '123abc"/>'));
 });
 
-// Why: group paint must be stable, visible and identified in the legend across renders.
-test("group palette and legend are deterministic", () => {
+// Why: distinct status and group hues, visible legend and non-colour cues must remain stable.
+test("theme category names determine status, group and legend colours", () => {
   const html = renderComposition(input.composition, input.meta.title, golden.sha);
   assert.equal(html, renderComposition(input.composition, input.meta.title, golden.sha));
+  assert.equal(new Set(Object.values(STATUS_TOKENS)).size, 3);
   assert.match(html, /aria-label="Map colour legend"/);
-  assert.match(html, /<strong>Status<\/strong>/);
-  assert.match(html, /<strong>Groups<\/strong>/);
-  const colours = input.composition.groups.map((g, i) => {
-    const colour = GROUP_COLOURS[i % GROUP_COLOURS.length];
-    assert.ok(html.includes(`data-id=${JSON.stringify(g.id)}] .iso-roof{fill:${colour}`));
-    assert.ok(html.includes(`background:${colour}`));
-    return colour;
-  });
-  assert.equal(new Set(colours).size, colours.length);
+  assert.match(html, /status-planned \.iso-face\{fill:/);
+  assert.match(html, /status-partial \.iso-hatch line\{stroke:/);
+  for (const [status, token] of Object.entries(STATUS_TOKENS)) {
+    assert.ok(html.includes(`--status-${status}:${themes.light.categories[token]}`));
+    assert.ok(html.includes(`--status-${status}:${themes.dark.categories[token]}`));
+    assert.ok(html.includes(`cat-${token} status-${status === "built" ? "implemented" : status}`));
+  }
+  for (const [i, group] of input.composition.groups.entries()) {
+    assert.ok(html.includes(`data-id=${JSON.stringify(group.id)}] .iso-roof{fill:${themes.light.categories[GROUP_TOKENS[i]]}`));
+    assert.ok(html.includes(`data-id=${JSON.stringify(group.id)}] .iso-roof{fill:${themes.dark.categories[GROUP_TOKENS[i]]}`));
+  }
   assert.throws(() => assert.match(html.replace('aria-label="Map colour legend"', ''), /aria-label="Map colour legend"/));
 });
 
-// Why: all composition text on explicit white labels and the page must exceed AA contrast.
-test("composition label and page text meet WCAG AA", () => {
-  const luminance = (hex) => {
-    const channels = hex.match(/[0-9a-f]{2}/gi).map((v) => parseInt(v, 16) / 255);
-    return channels.map((v) => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4)
-      .reduce((sum, v, i) => sum + v * [.2126, .7152, .0722][i], 0);
-  };
-  const ratio = (a, b) => (Math.max(luminance(a), luminance(b)) + .05) / (Math.min(luminance(a), luminance(b)) + .05);
+// Why: token-based page and tag text must pass WCAG AA in light and dark.
+test("composition label and page contrast meets WCAG AA in both themes", () => {
   const html = renderComposition(input.composition, input.meta.title, golden.sha);
-  assert.match(html, /\.iso-tag-bg,\.iso-label-bg\{fill:#ffffff;fill-opacity:1/);
-  assert.match(html, /\.bb-node-title,\.bb-kicker,\.bb-label\{fill:#17212b/);
-  assert.ok(ratio("#17212b", "#ffffff") >= 4.5);
-  assert.throws(() => assert.ok(ratio("#bbbbbb", "#ffffff") >= 4.5));
+  for (const theme of Object.values(themes)) {
+    assert.ok(ratio(theme.surfaces.text, theme.surfaces.canvas) >= 4.5);
+    assert.ok(ratio(theme.surfaces.muted, theme.surfaces.canvas) >= 4.5);
+    assert.ok(html.includes(`fill:${theme.surfaces.canvas};fill-opacity:1`));
+    assert.ok(html.includes(`fill:${theme.surfaces.text}`));
+  }
   assert.match(html, /\.is-dimmed\{opacity:\.12\}/);
 });
 
