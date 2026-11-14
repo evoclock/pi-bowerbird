@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Composition maps now produce ordinary linked overview and group diagrams plus standalone click-through flat and isometric HTML; the older single-file custom composition page is deprecated. Use `--out <dir>` ([#36](https://github.com/evoclock/pi-bowerbird/pull/36)). Standalone composition opens in light mode with filled category planes while keeping both theme and flat fill controls.
 - Optional trusted region mappings preserve observed joint states and parallel replay arrows without inventing independent execution or implementation defects ([#37](https://github.com/evoclock/pi-bowerbird/pull/37)).
 
+### Fixed
+- Concurrent TLC checks no longer race over extracted standard modules in the shared JVM temporary directory, and metadata polling tolerates files that TLC removes during a snapshot. Incomplete or invalid checks still fail closed.
+
 ## [0.2.0] - 2026-11-12
 
 ### Added
