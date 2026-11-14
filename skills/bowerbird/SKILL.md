@@ -74,7 +74,15 @@ Then, in order:
 
 1. `check`: unreachable states, dead ends (nothing can finish), ambiguous events (same event, indistinct guards). Findings are also drawn on the diagram. Fix the chart or the code; do not suppress.
 2. `journeys`: Given/When/Then paths from start to each end. Use them to seed a project verification skill's feature map (pstack `create-verification-skill-pi`).
-3. `tla`: a TLA+ module and TLC config. Guards are free booleans so TLC explores both outcomes. Running TLC is a separate, owner-approved step.
+3. `tla`: an **abstract** control-flow module and config. Guards are free booleans; actions do not update values. This export is not verification.
+
+## Author, check, project, render, explain a model
+
+1. **Author** a handwritten `.tla` and matching `.cfg` with explicit variables, initial state, actions, invariants and, if needed, temporal properties. Do not infer semantics from diagram labels or weaken a failing rule. The config and model specify what is checked, not what real code does.
+2. **Check** with `bowerbird verify Model.tla --config Model.cfg --tlc-jar /trusted/tla2tools.jar --out new-directory`. Obtain the reviewed pinned TLC jar explicitly and use Java 17+. Check the command's exit code: 0 means completed/no checked violation, 1 means a supported model violation, 2 means incomplete/error. Inspect per-rule statuses in `evidence.json` and `report.md`; unchecked does not mean passed. Do not overwrite prior results.
+3. **Project** only from sourced `evidence.json`. The verify command creates `model.bower.json` for supported concrete runs within the chart budget; an omitted chart is not an absent violation. If display grouping is useful, supply `--trusted-view ./reviewed-view.mjs` only for code you authored or independently audited. This executes JavaScript with your process permissions; it is not sandboxed. Export `state(vars)` for display labels and optionally `step(action, from, to)` and `regions(vars)`. The latter returns a nested object with at least two top-level named regions and string leaves. Each returned tree describes one **observed joint state**. Different joint combinations stay separate even if their display labels match. The chart keeps every concrete step and its complete source and target joint conditions, not independent region execution or an invented interleaving. TLC `VIEW` and `SYMMETRY` still omit concrete charts.
+4. **Render** using the verify output `model.html` and `model.svg`. Do not hand-edit generated output or turn graph `check` or `journeys` into a model-verification claim. Open the chart and follow its `evidence.json` links; read raw logs when projection is partial.
+5. **Explain** each checked, violated and unchecked rule with its config, witness path or temporal loop, bounds, constraints and omissions. Say **model evidence; implementation defects require independent replay**. This command does not replay actual code: explicitly label every counterexample **model-only** until independently reproduced against the implementation. Never claim a finite model check proves application correctness or a temporal witness is shortest.
 
 ## When the code changes
 
