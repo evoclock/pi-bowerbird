@@ -132,10 +132,9 @@ test("every group and status-bearing component has exactly one category class", 
     for (const [, cls, id] of slabs) {
       const categories = cls.match(/\bcat-[\w-]+/g) ?? [];
       assert.equal(categories.length, 1, `one category for ${id}`);
-      if (input.composition.components.some((component) => component.id === id)) {
-        const component = input.composition.components.find((item) => item.id === id);
-        assert.ok(cls.includes(`status-${component.status === "built" ? "implemented" : component.status}`));
-      }
+      const node = [...input.composition.groups, ...input.composition.components].find((item) => item.id === id);
+      assert.ok(node);
+      assert.ok(cls.includes(`status-${node.status === "built" ? "implemented" : node.status}`), `status must coexist with category for ${id}`);
     }
   };
   check(html);
