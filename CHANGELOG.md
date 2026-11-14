@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Typed TLC exploration evidence ([#25](https://github.com/evoclock/pi-bowerbird/pull/25)) and projection of finite outcomes to flat evidence charts ([#26](https://github.com/evoclock/pi-bowerbird/pull/26)).
 - Finite outcome report and CLI ([#27](https://github.com/evoclock/pi-bowerbird/pull/27)), separate multi-rule diagnostics ([#28](https://github.com/evoclock/pi-bowerbird/pull/28)), and temporal and deadlock witnesses ([#29](https://github.com/evoclock/pi-bowerbird/pull/29)).
 - Explicit disclosure of reductions, exploration boundaries, and chart omissions ([#31](https://github.com/evoclock/pi-bowerbird/pull/31)).
+- Opt-in trusted executable view mappings give display cards separate identities from concrete TLC fingerprints, retain every aggregate arrow and witness path, and distinguish sourced `breaks` from mixed-membership `mayBreak` marks ([#35](https://github.com/evoclock/pi-bowerbird/pull/35)).
 - Standalone isometric composition maps with version and input-SHA provenance markers ([#32](https://github.com/evoclock/pi-bowerbird/pull/32)); composition schema documentation and the `validate` guard ([#32](https://github.com/evoclock/pi-bowerbird/pull/32)); flat-to-composition migration guide ([#33](https://github.com/evoclock/pi-bowerbird/pull/33)).
 
 ## [0.2.0] - 2026-11-12
