@@ -49,6 +49,23 @@ test("malformed and incomplete machine graphs reject rather than invent states",
   assert.match(reduced.reason, /final state counts/);
 });
 
+test("TLC DOT rank groups and subgraph attributes do not invalidate projection", () => {
+  const dot = `strict digraph DiskGraph {
+nodesep=0.35;
+subgraph cluster_graph {
+color="white";
+label="states";
+1 [label="n = 0",style = filled]
+2 [label="n = 1"];
+{rank=same; a; b}
+1 -> 2 [label="Step",color="black",fontcolor="black"];
+}
+}
+`;
+  assert.deepEqual(parseGraph(dot).edges, [{ from: "1", to: "2", action: "Step" }]);
+  assert.throws(() => parseGraph(dot.replace("{rank=same; a; b}", "{rank=same; a -> b}")), /unsupported TLC DOT line/);
+});
+
 // Why: a finite pass records actual initial states, action edges, typed values and checked rule provenance.
 test("real TLC pass agrees with machine graph and completion log", { skip: !available && "Set TLC_TEST_JAR to run real TLC tests" }, async () => {
   const { record, evidence, destination } = await run("Counter.tla", "Counter.cfg");
