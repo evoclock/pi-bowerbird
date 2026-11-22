@@ -61,14 +61,14 @@ Dark and isometric styling do not change. The old `categoryFillParity` option is
 In pi:
 
 ```sh
-pi install npm:@evoclock/pi-bowerbird@0.3.1
+pi install npm:@evoclock/pi-bowerbird@0.3.2
 ```
 
-For a shell install from npm, or from the GitHub release tarball after v0.3.1 is published:
+For a shell install from npm, or from the GitHub release tarball after v0.3.2 is published:
 
 ```sh
-sfw npm install @evoclock/pi-bowerbird@0.3.1
-sfw npm install https://github.com/evoclock/pi-bowerbird/releases/download/v0.3.1/evoclock-pi-bowerbird-0.3.1.tgz
+sfw npm install @evoclock/pi-bowerbird@0.3.2
+sfw npm install https://github.com/evoclock/pi-bowerbird/releases/download/v0.3.2/evoclock-pi-bowerbird-0.3.2.tgz
 ```
 
 PNG and WebP export use `rsvg-convert` and `cwebp`:

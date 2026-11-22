@@ -5,6 +5,11 @@ All notable changes to `@evoclock/pi-bowerbird` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-11-22
+
+### Fixed
+- Accept TLC DOT rank groups and subgraph attribute lines so `bowerbird verify` no longer marks finished runs incomplete ([#41](https://github.com/evoclock/pi-bowerbird/pull/41)).
+
 ## [0.3.1] - 2026-11-22
 
 ### Changed
