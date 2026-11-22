@@ -34,7 +34,14 @@ You write one JSON file; the `bowerbird` tool renders everything else. Never han
               "evidence": { "paths": ["src/api/"], "tests": ["tests/api.test.ts"] },
               "details": "Markdown. #### headings, - lists, `code`, [links](src/api/index.ts)" }],
   "edges": [{ "from": "a", "to": "b", "kind": "data|control|failure", "label": "short",
-              "traces": ["request"] }]
+              "traces": ["request"] }],
+  "composition": {
+    "groups": [{ "id": "core", "title": "Core", "status": "built|partial|planned" }],
+    "components": [{ "id": "api", "title": "API", "group": "core",
+                     "type": "skill|recipe|playbook|workflow",
+                     "purpose": "One-line purpose", "status": "built|partial|planned" }],
+    "edges": [{ "from": "workflow-id", "to": "playbook-id", "step": 1 }]
+  }
 }
 ```
 
@@ -45,6 +52,16 @@ Rules that keep layouts clean:
 - Titles of 2 to 4 words, at most 2 `lines` of under 28 characters, edge labels of 1 to 3 words. Put everything else in `details`.
 - Categories are palette names (`sage rust peach mustard slate mauve teal olive`) and denote **kind**, never readiness. Status is separate.
 - `status` is `implemented | partial | planned`. With `evidence.paths`, `sync` derives it from git; do not guess.
+
+## Composition maps
+
+Use the optional `composition` object in the format above alongside authored `zones` and `nodes`. Give each group a matching zone and each component a matching node in that zone with an `at` cell, category, and matching status (`built` becomes node status `implemented`). Give every component a one-line purpose. The reference is [the composition schema](../../docs/composition-schema.md) and [the fixture](../../tests/fixtures/composition-repo/map.bower.json).
+
+- Lay out one zone per grid column, in adjacent columns `[0, 1, 2, …]`. Put its entry component at row 0 and stack the remaining components down rows in step order, as in the fixture. `projectComposition` places each overview group card at the `at` cell of that group's **first component in the components array**. Keep the entry first. Never spread a zone across many columns: the overview becomes sparse.
+- Add a `workflow` component if the flat map did not name one. It chains the group entry points in run order. Number edges per source with positive `step` values. Composition edges express execution only: workflow → playbook and playbook/recipe → skill, not data flow. The current validator rejects workflow → recipe edges even though the broader workflow → playbook/recipe wording may suggest otherwise. Ordinary diagram edges may describe data flow separately.
+- Keep the overview tight. Detail belongs in each group view: clicking an overview group opens its map in the standalone `composition.flat.html` or `composition.iso.html`. Put links to code, and TLA+ files where relevant, in node `details` for the next click-through.
+
+Run `bowerbird validate <f> --strict`, then `bowerbird composition <f> --out <dir> [--input-sha <sha>]`. Before delivering, check that the generated `overview.bower.json` group `at` cells are consecutive `[0,0]` through `[n,0]` (where `n` is the last group column).
 
 ## Planned-work diagrams without a model
 

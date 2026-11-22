@@ -91,6 +91,23 @@ test("composition preserves input placement, palette and linked group detail pag
   assert.match(text(path.join(out, "group-author.iso.html")), /href="overview\.iso\.html"/);
 });
 
+// Why: skill authors need adjacent overview cards, not columns occupied by whole zones.
+test("skill composition fixture renders consecutive overview group cells", () => {
+  const fixture = path.join(root, "tests/fixtures/composition-repo/map.bower.json");
+  const source = JSON.parse(text(fixture));
+  const out = mkdtempSync(path.join(os.tmpdir(), "bb-skill-composition-"));
+  const validation = run("validate", fixture, "--strict");
+  assert.equal(validation.status, 0, validation.stderr);
+  const result = run("composition", fixture, "--out", out, "--input-sha", sha);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(existsSync(path.join(out, "composition.flat.html")), true);
+  assert.equal(existsSync(path.join(out, "composition.iso.html")), true);
+  const overview = JSON.parse(text(path.join(out, "overview.bower.json")));
+  assert.deepEqual(overview.nodes.map((node) => node.id), source.composition.groups.map((group) => group.id));
+  assert.deepEqual(overview.nodes.map((node) => node.at),
+    source.composition.groups.map((_, column) => [column, 0]));
+});
+
 // Why: a layout-free composition cannot silently acquire a synthetic grid.
 test("composition rejects missing authored placement before output", () => {
   const source = structuredClone(input);
