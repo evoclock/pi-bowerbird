@@ -5,6 +5,12 @@ All notable changes to `@evoclock/pi-bowerbird` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-11-22
+
+### Changed
+- Document the composition map layout contract and strict validation workflow in the skill and README ([#39](https://github.com/evoclock/pi-bowerbird/pull/39)).
+- Make the README's model verification guidance easier to scan ([#38](https://github.com/evoclock/pi-bowerbird/pull/38)).
+
 ## [0.3.0] - 2026-11-14
 
 ### Added
@@ -54,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Theme-aware isometric architecture example and Pi npm package install docs (see [v0.1.1 release](https://github.com/evoclock/pi-bowerbird/releases/tag/v0.1.1)).
 
+[0.3.1]: https://github.com/evoclock/pi-bowerbird/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/evoclock/pi-bowerbird/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/evoclock/pi-bowerbird/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/evoclock/pi-bowerbird/compare/v0.1.1...v0.1.2
