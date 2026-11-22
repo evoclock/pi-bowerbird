@@ -61,14 +61,14 @@ Dark and isometric styling do not change. The old `categoryFillParity` option is
 In pi:
 
 ```sh
-pi install npm:@evoclock/pi-bowerbird@0.3.0
+pi install npm:@evoclock/pi-bowerbird@0.3.1
 ```
 
-For a shell install from npm, or from the GitHub release tarball after v0.3.0 is published:
+For a shell install from npm, or from the GitHub release tarball after v0.3.1 is published:
 
 ```sh
-sfw npm install @evoclock/pi-bowerbird@0.3.0
-sfw npm install https://github.com/evoclock/pi-bowerbird/releases/download/v0.3.0/evoclock-pi-bowerbird-0.3.0.tgz
+sfw npm install @evoclock/pi-bowerbird@0.3.1
+sfw npm install https://github.com/evoclock/pi-bowerbird/releases/download/v0.3.1/evoclock-pi-bowerbird-0.3.1.tgz
 ```
 
 PNG and WebP export use `rsvg-convert` and `cwebp`:
@@ -111,15 +111,17 @@ Add a `composition` object to a `*.bower.json` diagram to map how components fit
 - Component types are `skill`, `recipe`, `playbook`, and `workflow`. Workflows order playbooks; recipes and playbooks order skills.
 - IDs must be unique across groups and components. Older diagrams need no changes.
 
-Use an authored diagram with matching zones, nodes, categories, and placement (see [the composition schema and flat-to-composition how-to](docs/composition-schema.md)). Validate and render into a directory:
+Author matching zones and nodes for the composition groups and components. Put each group in an adjacent grid column, with its entry component first in the `components` array at row 0 and the rest stacked in step order. The first component's `at` cell sets the overview card's position. Keep execution edges separate from ordinary data-flow edges. See the [skill's composition layout contract](skills/bowerbird/SKILL.md#composition-maps) and the [composition schema and migration guide](docs/composition-schema.md).
+
+Validate strictly before rendering into a directory:
 
 ```sh
-bowerbird validate examples/bowerbird.bower.json && bowerbird composition examples/bowerbird.bower.json --out diagrams/composition
+bowerbird validate examples/bowerbird.bower.json --strict && bowerbird composition examples/bowerbird.bower.json --out diagrams/composition
 # Or, for input outside a Git repository, supply its real full commit SHA:
 bowerbird composition examples/bowerbird.bower.json --out diagrams/composition --input-sha 0123456789abcdef0123456789abcdef01234567
 ```
 
-The output directory contains linked `overview` and `group-*` diagrams in flat and isometric views. It also contains standalone `composition.flat.html` and `composition.iso.html` pages.
+The output directory contains linked `overview` and `group-*` diagrams in flat and isometric views. It also contains standalone `composition.flat.html` and `composition.iso.html` pages. Before sharing, check that `overview.bower.json` places group cards at consecutive `[0,0]` through `[n,0]` cells.
 
 - Standalone pages embed the rendered groups. Click a group to open it, then return to the overview without a network request.
 - Pages start in light mode with filled category colours. The theme toggle switches to dark; flat pages can also switch between filled cards and dots.
