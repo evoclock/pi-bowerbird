@@ -57,13 +57,13 @@ color="white";
 label="states";
 1 [label="n = 0",style = filled]
 2 [label="n = 1"];
-{rank=same; 1; 2}
+{rank=same; a; b}
 1 -> 2 [label="Step",color="black",fontcolor="black"];
 }
 }
 `;
   assert.deepEqual(parseGraph(dot).edges, [{ from: "1", to: "2", action: "Step" }]);
-  assert.throws(() => parseGraph(dot.replace("{rank=same; 1; 2}", "{rank=same; 1 -> 2}")), /unsupported TLC DOT line/);
+  assert.throws(() => parseGraph(dot.replace("{rank=same; a; b}", "{rank=same; a -> b}")), /unsupported TLC DOT line/);
 });
 
 // Why: a finite pass records actual initial states, action edges, typed values and checked rule provenance.
